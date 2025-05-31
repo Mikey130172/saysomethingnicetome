@@ -1,0 +1,2339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say Something To Me</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 40px 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .category-button {
+            padding: 14px 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            color: #2c3e50;
+            text-decoration: none;
+            display: block;
+            font-family: 'Georgia', serif;
+        }
+
+        .category-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #bdc3c7;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+        }
+
+        .message-page {
+            display: none;
+        }
+
+        .message-page.active {
+            display: block;
+        }
+
+        .message-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s ease;
+            padding: 5px 10px;
+        }
+
+        .back-button:hover {
+            color: #2c3e50;
+        }
+
+        .message-area {
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #ecf0f1;
+        }
+
+        .message {
+            font-size: 1em;
+            line-height: 1.6;
+            color: #2c3e50;
+            max-width: 450px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+            font-weight: 300;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .get-message-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .get-message-btn:hover {
+            background: #2c3e50;
+            transform: translateY(-1px);
+        }
+
+        .ad-space {
+            width: 100%;
+            height: 70px;
+            background: #f7f7f7;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.8em;
+            margin: 25px 0;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #ecf0f1;
+            color: #95a5a6;
+            font-size: 0.8em;
+            font-weight: 300;
+        }
+
+        .donation-link {
+            color: #34495e;
+            text-decoration: none;
+            font-weight: 400;
+        }
+
+        .donation-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Category-specific styling */
+        .nice-page { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); }
+        .nice-page .message-area { border-left-color: #e8b4cb; background: #fdf8fb; }
+        .nice-page .get-message-btn { background: #e8b4cb; }
+        .nice-page .get-message-btn:hover { background: #d8a4bb; }
+
+        .encouraging-page { background: linear-gradient(135deg, #e8f5e8 0%, #d4f4d4 100%); }
+        .encouraging-page .message-area { border-left-color: #82c341; background: #f0f8f0; }
+        .encouraging-page .get-message-btn { background: #82c341; }
+        .encouraging-page .get-message-btn:hover { background: #72b331; }
+
+        .sad-page { background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%); }
+        .sad-page .message-area { border-left-color: #74a9d8; background: #f0f7ff; }
+        .sad-page .get-message-btn { background: #74a9d8; }
+        .sad-page .get-message-btn:hover { background: #6499c8; }
+
+        .angry-page { background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); }
+        .angry-page .message-area { border-left-color: #e74c3c; background: #fff0f0; }
+        .angry-page .get-message-btn { background: #e74c3c; }
+        .angry-page .get-message-btn:hover { background: #d73c2c; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.6em;
+            }
+            
+            .buttons-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .category-button {
+                padding: 12px 20px;
+                font-size: 0.85em;
+            }
+            
+            .back-button {
+                top: 15px;
+                left: 15px;
+                font-size: 0.9em;
+            }
+            
+            .message {
+                font-size: 0.95em;
+            }
+
+            .message-area {
+                padding: 25px;
+                min-height: 130px;
+            }
+
+            .get-message-btn {
+                padding: 10px 25px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landingPage" class="container">
+        <h1>Hello</h1>
+        
+        <!-- Ad space -->
+        <div class="ad-space">Advertisement</div>
+        
+        <div class="buttons-grid">
+            <a href="#" class="category-button" onclick="showCategory('nice')">Say Something Nice To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('encouraging')">Say Something Encouraging To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('funny')">Say Something Funny To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('outrageous')">Say Something Outrageous To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('smart')">Say Something Smart To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('beautiful')">Say Something Beautiful To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('sad')">Say Something Sad To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('angry')">Say Something Angry To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('sarcastic')">Say Something Sarcastic To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('meaningless')">Say Something Meaningless To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('meaningful')">Say Something Meaningful To Me</a>
+            <a href="#" class="category-button" onclick="showCategory('stupid')">Say Something Stupid To Me</a>
+        </div>
+        
+        <div class="footer">
+            <p>designed to remind you that you matter</p>
+            <p><a href="#" class="donation-link">say you'll support this page</a></p>
+        </div>
+    </div>
+
+    <!-- Category Pages -->
+    <div id="nicePage" class="message-page nice-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <!-- Ad space -->
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="niceMessage">
+                    Click below to receive something nice
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('nice')">Say Something Nice To Me</button>
+            
+            <!-- Ad space -->
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="encouragingPage" class="message-page encouraging-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="encouragingMessage">
+                    Click below to receive encouragement
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('encouraging')">Say Something Encouraging To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="sadPage" class="message-page sad-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="sadMessage">
+                    Click below when you need to feel deeply
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('sad')">Say Something Sad To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="funnyPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="funnyMessage">
+                    Click below for something funny
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('funny')">Say Something Funny To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="outrageousPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="outrageousMessage">
+                    Click below for something outrageous
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('outrageous')">Say Something Outrageous To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="smartPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="smartMessage">
+                    Click below for something smart
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('smart')">Say Something Smart To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="beautifulPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="beautifulMessage">
+                    Click below for something beautiful
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('beautiful')">Say Something Beautiful To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="angryPage" class="message-page angry-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="angryMessage">
+                    Click below for something angry
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('angry')">Say Something Angry To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="sarcasticPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="sarcasticMessage">
+                    Click below for something sarcastic
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('sarcastic')">Say Something Sarcastic To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="meaninglessPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="meaninglessMessage">
+                    Click below for something meaningless
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('meaningless')">Say Something Meaningless To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="meaningfulPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="meaningfulMessage">
+                    Click below for something meaningful
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('meaningful')">Say Something Meaningful To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <div id="stupidPage" class="message-page">
+        <div class="container message-container">
+            <button class="back-button" onclick="showLanding()">← Back</button>
+            
+            <div class="ad-space">Advertisement</div>
+            
+            <div class="message-area">
+                <div class="message" id="stupidMessage">
+                    Click below for something stupid
+                </div>
+            </div>
+            
+            <button class="get-message-btn" onclick="showMessage('stupid')">Say Something Stupid To Me</button>
+            
+            <div class="ad-space">Advertisement</div>
+        </div>
+    </div>
+
+    <script>
+        // Message database
+        const messages = {
+            nice: [
+                "You have a quiet strength that others admire more than you know.",
+                "Your kindness creates ripples of goodness in ways you may never see.",
+                "You are enough, exactly as you are in this moment.",
+                "Someone's day was made better simply because you exist.",
+                "Your gentle heart is a rare gift in this world.",
+                "You carry light with you wherever you go.",
+                "The world is more beautiful because you're in it.",
+                "Your compassion makes others feel less alone.",
+                "You have survived everything life has given you so far.",
+                "Your presence brings peace to those around you.",
+                "You make ordinary moments feel special.",
+                "Your authenticity is refreshing in a world of pretense.",
+                "You have touched more lives than you realize.",
+                "Your smile has the power to change someone's entire day.",
+                "You are braver than you believe and stronger than you seem.",
+                "Your story matters and deserves to be told.",
+                "You bring out the best in people simply by being yourself.",
+                "Your heart holds more love than you give yourself credit for.",
+                "You are a masterpiece, even on your worst days.",
+                "The universe conspired to create someone exactly like you.",
+                "Your soul shines brighter than you realize.",
+                "You make the ordinary feel extraordinary just by being present.",
+                "Your laugh is someone's favorite sound in the world.",
+                "You have a gift for making others feel seen and valued.",
+                "Your heart is a sanctuary of warmth and acceptance.",
+                "You are proof that good things still exist in this world.",
+                "Your kindness is a superpower that changes everything around you.",
+                "You carry hope with you like a gentle flame.",
+                "Your existence adds meaning to the lives you touch.",
+                "You are someone's reason to believe in goodness.",
+                "Your empathy creates healing wherever you go.",
+                "You have the rare ability to make people feel at home in themselves.",
+                "Your spirit is unbreakable, even when you feel fragile.",
+                "You are a living example of grace under pressure.",
+                "Your presence is a gift that keeps on giving.",
+                "You make the world softer and more beautiful.",
+                "Your wisdom comes from a place of genuine caring.",
+                "You have mastered the art of being genuinely lovely.",
+                "Your inner light illuminates the path for others.",
+                "You are treasured more than you'll ever know.",
+                "Your gentleness is strength disguised as kindness.",
+                "You create safe spaces just by being yourself.",
+                "Your love language is making others feel worthy.",
+                "You are a walking reminder that humanity is beautiful.",
+                "Your thoughtfulness touches lives in ways you can't imagine.",
+                "You have the gift of making complicated things feel simple.",
+                "Your patience is a form of love that others desperately need.",
+                "You are someone's answered prayer, whether they've told you or not.",
+                "Your authenticity gives others permission to be real too.",
+                "You make every room you enter a little bit brighter.",
+                "Your hugs have healing powers.",
+                "You see beauty where others see flaws.",
+                "Your encouragement has changed the trajectory of someone's life.",
+                "You are a masterpiece of compassion and grace.",
+                "Your quiet strength moves mountains without making noise.",
+                "You have the ability to turn ordinary moments into treasured memories.",
+                "Your love is unconditional in a conditional world.",
+                "You are proof that angels walk among us.",
+                "Your smile is a universal language of kindness.",
+                "You make people feel like they matter, and that's everything.",
+                "Your heart is a refuge for the weary.",
+                "You see potential in people before they see it in themselves.",
+                "Your presence is more valuable than any present.",
+                "You are the kind of person the world needs more of.",
+                "Your compassion knows no boundaries.",
+                "You make forgiveness look easy and love look natural.",
+                "Your soul is old and wise and beautiful.",
+                "You have the rare gift of making everyone feel special.",
+                "Your love story with life inspires others to write their own.",
+                "You are a walking blessing to everyone who knows you.",
+                "Your heart is a garden where beautiful thoughts grow.",
+                "You make being human look like an art form.",
+                "Your kindness is contagious in the best possible way.",
+                "You are someone's safe harbor in the storm.",
+                "Your words have the power to heal what's broken.",
+                "You make ordinary days feel like celebrations.",
+                "Your spirit is unshakeable and your love is unstoppable.",
+                "You are a reminder that good people still exist.",
+                "Your generosity of spirit knows no limits.",
+                "You make the world a more hopeful place.",
+                "Your presence is a present to everyone around you.",
+                "You have the ability to see the best in everyone.",
+                "Your love multiplies when you share it.",
+                "You are a living example of what it means to be human.",
+                "Your heart is home to so much beauty and light.",
+                "You make people believe in themselves again.",
+                "Your friendship is a treasure beyond measure.",
+                "You are someone's sunshine on their cloudiest day.",
+                "Your soul radiates warmth and acceptance.",
+                "You make being good look effortless.",
+                "Your love is a force of nature that transforms everything.",
+                "You are exactly the person someone needed to meet today.",
+                "Your kindness creates ripples that become waves of change.",
+                "You have the power to make someone's entire year better.",
+                "Your heart is a compass that always points toward love.",
+                "You make the impossible seem possible through your belief.",
+                "Your presence is a gift that keeps giving long after you've gone.",
+                "You are someone's definition of what good looks like.",
+                "Your love is the kind that makes people want to be better.",
+                "You have a PhD in making people feel valued and seen.",
+                "Your soul is a work of art painted with kindness and grace.",
+                "You make love look easy and kindness look natural.",
+                "Your heart is a fountain of endless compassion.",
+                "You are the human embodiment of a warm hug.",
+                "Your goodness is a light that never dims.",
+                "You make every person you meet feel like they're enough.",
+                "Your love is a sanctuary in a world that can be harsh.",
+                "You are proof that beautiful souls exist in beautiful people.",
+                "Your kindness is a revolution of one that's changing the world.",
+                "You have the gift of making everyone feel like family.",
+                "Your heart is a masterpiece of love and compassion.",
+                "You make being alive feel like a celebration.",
+                "Your presence turns houses into homes and strangers into friends.",
+                "You are someone's evidence that love still exists.",
+                "Your soul is a beacon of hope in uncertain times.",
+                "You make ordinary conversations feel like therapy sessions.",
+                "Your love is a safe place where broken hearts come to heal.",
+                "You are the kind of person people write songs about.",
+                "Your kindness is a superpower that saves the day, every day.",
+                "You have mastered the art of loving people exactly as they are.",
+                "Your heart is a library of beautiful stories about human goodness.",
+                "You make the world make sense again.",
+                "Your presence is proof that magic exists in everyday moments.",
+                "You are someone's favorite human being on this entire planet.",
+                "Your love is the answer to questions people didn't know they were asking."
+            ],
+            
+            encouraging: [
+                "Every expert was once a beginner who refused to give up.",
+                "Your potential is limitless, and you're just getting started.",
+                "Great things take time, and you are worth the wait.",
+                "You've overcome challenges before, and you'll do it again.",
+                "Progress, not perfection, is what truly matters.",
+                "You are exactly where you need to be for what comes next.",
+                "Your persistence today creates your breakthrough tomorrow.",
+                "Difficult roads often lead to beautiful destinations.",
+                "You have everything within you to succeed.",
+                "Every setback is setting you up for a comeback.",
+                "Your dreams are valid and achievable with patience.",
+                "You are writing a story of resilience with every step.",
+                "The best view comes after the hardest climb.",
+                "You are capable of far more than you imagine.",
+                "Your determination will carry you through any storm.",
+                "Success is not final, failure is not fatal - courage counts.",
+                "You are stronger than any obstacle in your path.",
+                "Believe in yourself as much as others believe in you.",
+                "Your journey is unique and unfolding perfectly.",
+                "You have the power to create the life you envision.",
+                "You are stronger than your strongest excuse and braver than your biggest fear.",
+                "Every master was once a disaster who never gave up trying.",
+                "Your comeback story is still being written, and it's going to be incredible.",
+                "The only impossible journey is the one you never begin.",
+                "You've survived 100% of your bad days so far - that's a perfect track record.",
+                "Your potential is an ocean, and you've only touched the shore.",
+                "Diamonds are formed under pressure, and you're currently being refined.",
+                "You don't have to be perfect, you just have to be persistent.",
+                "Your next breakthrough is hiding behind your next breakdown.",
+                "Every expert was once a beginner who refused to quit when it got hard.",
+                "You are exactly where you need to be to get where you're going.",
+                "Your struggles today are developing the strength you need for tomorrow.",
+                "The view from the top is worth every step you're taking now.",
+                "You have everything it takes, you just need to believe it.",
+                "Your dreams don't have expiration dates - it's never too late to pursue them.",
+                "Resilience is your middle name, even if you don't remember choosing it.",
+                "You've overcome things that once felt impossible - trust your track record.",
+                "Every step forward, no matter how small, is progress worth celebrating.",
+                "Your future self is cheering you on from tomorrow.",
+                "You're not behind in life, you're exactly on time for your own journey.",
+                "The universe is conspiring to help you succeed, not to make you fail.",
+                "Your current chapter is not your final chapter - keep writing.",
+                "You have the power to rewrite your story starting right now.",
+                "Every setback is a setup for a comeback that's even more spectacular.",
+                "You are braver than you believe, stronger than you seem, and more loved than you know.",
+                "Your persistence is your superpower - it will carry you through anything.",
+                "You don't need to see the whole staircase, just take the next step.",
+                "Your breakthrough is brewing - don't give up right before the miracle.",
+                "You've been assigned this mountain to show others it can be moved.",
+                "Your greatest victory will be the result of your most difficult battle.",
+                "Every day you don't give up is a day you win, even if it doesn't feel like it.",
+                "You are writing a story of triumph with every choice to keep going.",
+                "Your resilience is rewriting the rules of what's possible.",
+                "The seed of success is often planted in the soil of struggle.",
+                "You have the heart of a warrior and the soul of a champion.",
+                "Your determination is already your destination - you just can't see it yet.",
+                "Every challenge you face is preparing you for something greater.",
+                "You are not stuck, you are in transition to something amazing.",
+                "Your courage doesn't always roar - sometimes it's the quiet voice that says 'I'll try again tomorrow.'",
+                "You are exactly the right person to handle whatever you're facing.",
+                "Your strength is not measured by what you can handle, but by what you recover from.",
+                "The road to success is always under construction, and you're the perfect architect.",
+                "You have survived every single thing life has thrown at you - you're clearly unstoppable.",
+                "Your present struggles are developing your future strengths.",
+                "Every time you choose to keep going, you're voting for your dreams.",
+                "You don't need anyone's permission to be amazing - you already are.",
+                "Your persistence will pay off in ways you cannot yet imagine.",
+                "You are building something beautiful with every difficult day you endure.",
+                "The universe doesn't give you anything you can't handle - it believes in you.",
+                "Your next level of success requires your next level of resilience.",
+                "You are exactly where you need to be to become who you're meant to be.",
+                "Every expert was once a beginner who decided to start before they felt ready.",
+                "Your life is proof that you can overcome anything and everything.",
+                "You don't have to be fearless, you just have to act in spite of your fear.",
+                "Your dreams are worth every ounce of effort you're putting in.",
+                "You are not a victim of your circumstances, you are an architect of your destiny.",
+                "Your comeback will be greater than your setback - history always proves this.",
+                "Every day you choose hope over despair, you're changing your entire trajectory.",
+                "You have more power than you realize and more strength than you remember.",
+                "Your journey is unique, which means your success will be too.",
+                "The best time to plant a tree was 20 years ago, the second best time is now.",
+                "You are exactly the right amount of everything you need to be.",
+                "Your potential is infinite, your possibilities are endless, and your time is now.",
+                "Every mountain top is within reach if you just keep climbing.",
+                "You don't need to be perfect to be amazing - you already are amazing.",
+                "Your struggles are not punishments, they're preparations for something greater.",
+                "Every time you get back up, you're proving that giving up is not an option.",
+                "You are writing a masterpiece with your life, one brave choice at a time.",
+                "Your strength is not in never falling, but in rising every time you fall.",
+                "The only limit to your success is the one you accept in your mind.",
+                "You have everything within you to turn your dreams into your reality.",
+                "Your persistence is your promise to yourself that giving up is not an option.",
+                "Every challenge you overcome makes you stronger for the next mountain to climb.",
+                "You are not just surviving your story, you are thriving in it.",
+                "Your breakthrough is not a matter of if, but when - keep going.",
+                "You have the heart of a champion and the spirit of a warrior.",
+                "Every step you take is writing a story of courage that will inspire others.",
+                "You are stronger than your excuses and more powerful than your fears.",
+                "Your dreams are not too big, your belief in yourself just needs to catch up.",
+                "Every day you choose progress over perfection, you're choosing to win.",
+                "You have survived every single bad day you've ever had - your track record is perfect.",
+                "Your current struggle is developing your future strength - trust the process.",
+                "You are exactly where you need to be to get where you're going next.",
+                "Every expert was once a beginner who refused to stay a beginner.",
+                "Your resilience is your greatest asset and your secret weapon for success.",
+                "You don't need to see the whole path, you just need to trust the next step.",
+                "Your future self is already proud of the courage you're showing today.",
+                "Every setback is setting you up for a comeback that will amaze everyone.",
+                "You are not just building a future, you're building character through every challenge.",
+                "Your strength is not in never struggling, but in never stopping despite the struggle.",
+                "You have the power to turn your mess into your message and your pain into your purpose.",
+                "Every day you don't quit is a victory worth celebrating.",
+                "You are writing a story of triumph that will inspire generations.",
+                "Your persistence is proof that giving up is simply not in your vocabulary.",
+                "Every mountain you're climbing is preparing you to help others climb theirs.",
+                "You have everything you need within you to succeed - trust yourself.",
+                "Your dreams are not just possible, they're inevitable if you don't give up.",
+                "Every challenge is an opportunity to prove to yourself what you're capable of.",
+                "You are not just overcoming obstacles, you're becoming someone who inspires others to do the same.",
+                "Your journey is creating a path for others to follow - keep blazing the trail.",
+                "You have the heart of a lion and the determination of a champion.",
+                "Every time you choose courage over comfort, you're choosing to grow into your greatness.",
+                "Your success story is still being written, and the best chapters are yet to come.",
+                "You are exactly the right person to handle everything that's coming your way.",
+                "Your resilience is rewriting the rules of what's possible in your life.",
+                "Every step forward is a victory, no matter how small it may seem.",
+                "You have overcome too much to give up now - your breakthrough is coming."
+            ],
+            
+            sad: [
+                "Sometimes the most beautiful flowers grow from the deepest pain.",
+                "Your tears are not weakness - they're proof of your capacity to feel.",
+                "It's okay to not be okay right now.",
+                "The fact that you're still here shows incredible strength.",
+                "Your sadness is valid, and you don't need to apologize for it.",
+                "Even in darkness, you are still worthy of love and compassion.",
+                "This feeling will pass, though it doesn't feel like it now.",
+                "You've survived every difficult day so far - that's remarkable.",
+                "Your sensitivity is not a flaw, it's what makes you beautifully human.",
+                "Sometimes we need to sit with sadness to appreciate joy when it returns.",
+                "You are allowed to grieve, to feel lost, to not have answers.",
+                "Your pain is temporary, but your resilience is permanent.",
+                "You matter, especially on the days when you feel like you don't.",
+                "The depth of your sadness shows the depth of your capacity for happiness.",
+                "You don't have to carry this weight alone.",
+                "Your heart may be heavy, but it's also full of love waiting to be felt.",
+                "Healing isn't linear, and you're allowed to feel everything.",
+                "Tomorrow won't necessarily be better, but you'll be stronger for it.",
+                "You are both a masterpiece and a work in progress.",
+                "Your broken pieces can be put back together, different but beautiful.",
+                "Sometimes the bravest thing you can do is let yourself feel everything.",
+                "Your tears are not a sign of weakness, they're proof of your humanity.",
+                "It's okay to grieve the person you used to be while becoming who you're meant to be.",
+                "Sadness is not the opposite of happiness - it's the depth that makes happiness possible.",
+                "You don't have to be strong all the time. Sometimes being broken is exactly where healing begins.",
+                "Your heart is allowed to be heavy while you carry the weight of the world.",
+                "There's honor in feeling deeply in a world that often numbs itself to pain.",
+                "Your sadness is valid, your pain is real, and your healing will be profound.",
+                "Sometimes you have to break completely before you can rebuild yourself stronger.",
+                "The darkness you're walking through is not your destination - it's your transformation.",
+                "Your soul is too beautiful to be dimmed by temporary shadows.",
+                "Even flowers need rain to grow, and your tears are watering something beautiful within you.",
+                "You're not falling apart, you're falling into place in ways you can't yet see.",
+                "The deepest wounds often become the source of our greatest wisdom.",
+                "Your broken heart is not a sign of failure - it's evidence of your capacity to love.",
+                "Sometimes the most beautiful art comes from the most painful experiences.",
+                "You're allowed to mourn what never was while hoping for what still could be.",
+                "The night is darkest just before the dawn, and your dawn is coming.",
+                "Your pain has purpose, even when that purpose isn't clear yet.",
+                "Healing isn't linear, and neither is the journey back to joy.",
+                "The cracks in your heart are where the light gets in.",
+                "You're not too sensitive - the world just needs more people who feel as deeply as you do.",
+                "Your sadness is a temporary visitor, not a permanent resident.",
+                "Sometimes falling apart is the only way to fall back together.",
+                "The depth of your sorrow reflects the depth of your capacity for joy.",
+                "You're allowed to feel lost while you're finding your way back to yourself.",
+                "Your tears are sacred - they're washing away what no longer serves you.",
+                "Even in your darkest moments, you are still worthy of love and belonging.",
+                "The storm inside you is temporary, but the strength it's building is permanent.",
+                "You're not broken beyond repair - you're being rebuilt into something beautiful.",
+                "Your sensitivity is not a curse, it's a gift that makes you beautifully human.",
+                "Sometimes you have to sit with the sadness to remember what happiness feels like.",
+                "The weight you're carrying will make you stronger when you're ready to put it down.",
+                "Your heart knows how to heal itself if you give it time and tenderness.",
+                "Even the sun sets every day, but it always rises again.",
+                "Your sadness is not a life sentence - it's a chapter in your story of resilience.",
+                "The broken places in your heart are where empathy grows.",
+                "You're allowed to grieve what you've lost while celebrating what remains.",
+                "Sometimes the most profound healing happens in the quietest moments of sorrow.",
+                "Your pain is not pointless - it's preparing you for something beautiful.",
+                "The tears you cry today are watering the joy you'll experience tomorrow.",
+                "You don't have to pretend to be okay when you're not - authenticity is healing.",
+                "Your wounded heart is still a heart full of love waiting to be shared.",
+                "Sometimes the most important conversations happen in the silence of sadness.",
+                "You're not drowning in your sorrow - you're learning to swim in deeper waters.",
+                "The heaviness you feel is not permanent - it's preparing you for lightness.",
+                "Your sadness connects you to every human who has ever loved and lost.",
+                "Even in your pain, you are writing a story of survival that will inspire others.",
+                "The darkness you're experiencing is not the end of your story - it's the plot twist.",
+                "Your heart is allowed to break and heal and break and heal as many times as it needs to.",
+                "Sometimes the most beautiful symphonies are composed in the key of sadness.",
+                "You're not alone in your sorrow - every heart has known this ache.",
+                "The gentle rain of your tears is nourishing something beautiful inside you.",
+                "Your sadness is temporary, but the compassion it's teaching you is eternal.",
+                "You don't have to be grateful for your pain, but you can trust that it has meaning.",
+                "Sometimes the most important journey is the one from broken to whole.",
+                "Your tears are not failure - they're the overflow of a heart that has loved deeply.",
+                "The sadness you feel today is making space for the joy that's coming tomorrow.",
+                "You're allowed to feel everything without having to explain it to anyone.",
+                "Your heart is not broken - it's broken open to hold more love than before.",
+                "Sometimes the most profound wisdom comes wrapped in the quietest sadness.",
+                "You're not too much - you're exactly the right amount of everything you need to be.",
+                "The depth of your sorrow is matched only by the depth of your resilience.",
+                "Your pain is real, your struggle is valid, and your healing will be magnificent.",
+                "Sometimes the most beautiful flowers grow from the darkest soil.",
+                "You don't have to rush through your sadness - it has something to teach you.",
+                "Your broken heart is still a heart capable of extraordinary love.",
+                "The storm you're weathering is making you stronger than you ever imagined possible.",
+                "Your sadness is not a sign that something is wrong with you - it's proof you're human.",
+                "Sometimes the most important healing happens when you stop trying to be strong.",
+                "You're allowed to miss what you've lost while being grateful for what remains.",
+                "The darkness you're walking through is not where you'll remain - it's where you'll transform.",
+                "Your tears are not weakness - they're the release of strength you no longer need to carry.",
+                "Sometimes the most profound love letters are written in the language of loss.",
+                "You don't have to understand your pain to honor it and learn from it.",
+                "Your heart is allowed to be homesick for people and places that no longer exist.",
+                "The sadness you carry is making you more compassionate toward others who are hurting.",
+                "Sometimes the most important prayer is simply 'help me through this.'",
+                "You're not falling behind in life - you're taking the time you need to heal properly.",
+                "Your pain is not punishment - it's preparation for something you can't yet see.",
+                "The gentle ache in your heart is making room for deeper love and joy.",
+                "You don't have to be positive about your sadness - you just have to be present with it.",
+                "Sometimes the most courageous thing you can do is admit that you're not okay.",
+                "Your sadness is not selfish - it's self-aware and ultimately self-healing.",
+                "The tears you cry in private are seen by a universe that holds you tenderly.",
+                "You're allowed to take up space with your emotions without apologizing for feeling.",
+                "Your heart knows the difference between giving up and letting go - trust it.",
+                "Sometimes the most beautiful art is created from the palette of our deepest pain.",
+                "You don't have to have all the answers - sometimes the questions are enough.",
+                "Your sadness is temporary weather, not permanent climate change.",
+                "The wound you're nursing is slowly becoming the wisdom you'll share with others.",
+                "You're not broken - you're breaking open to become more expansive than before.",
+                "Sometimes the most profound healing happens in the embrace of accepted sadness.",
+                "Your pain has carved out space in your heart for unprecedented joy.",
+                "The gentleness you need right now is available within you if you'll receive it.",
+                "You don't have to earn your way out of sadness - healing is your birthright.",
+                "Your tears are prayers your heart is too tired to speak out loud.",
+                "Sometimes the most important journey is learning to be gentle with yourself.",
+                "You're not lost - you're wandering toward a version of yourself you haven't met yet.",
+                "The sadness you feel is proportional to the love you've given - honor both.",
+                "Your heart is not failing you - it's teaching you about the full spectrum of being human.",
+                "Sometimes the most profound transformation happens in the cocoon of necessary sadness.",
+                "You don't have to fix your sadness - you just have to feel it until it's ready to transform.",
+                "Your pain is not your identity - it's your teacher, preparing you for your purpose.",
+                "The darkness you're experiencing is not the absence of light - it's the presence of growth.",
+                "You're allowed to be sad about things that others might not understand.",
+                "Your healing doesn't have to look like anyone else's - it just has to be authentic to you.",
+                "Sometimes the most important love is the love you give yourself in your darkest moments."
+            ],
+            
+            funny: [
+                "I told my wife she was drawing her eyebrows too high. She looked surprised.",
+                "Why don't scientists trust atoms? Because they make up everything!",
+                "I used to hate facial hair, but then it grew on me.",
+                "Parallel lines have so much in common. It's a shame they'll never meet.",
+                "I'm reading a book about anti-gravity. It's impossible to put down!",
+                "Did you hear about the mathematician who's afraid of negative numbers? He'll stop at nothing to avoid them.",
+                "Why did the scarecrow win an award? He was outstanding in his field!",
+                "I told my computer a joke about binary, but it only got half of it.",
+                "Time flies like an arrow; fruit flies like a banana.",
+                "I told my cat a joke about dogs, but he didn't find it a-mew-sing.",
+                "My bank account is like an onion - every time I open it, I cry.",
+                "I'm not lazy, I'm just on energy-saving mode like my phone.",
+                "I tried to make a belt out of watches, but it was a waist of time.",
+                "Why don't eggs tell jokes? They'd crack each other up!",
+                "I bought a ceiling fan the other day. Complete waste of money. He just stands there going 'Yes, it's a ceiling.'",
+                "My therapist says I have a preoccupation with vengeance. We'll see about that.",
+                "I haven't spoken to my wife in years. I didn't want to interrupt her.",
+                "The early bird might get the worm, but the second mouse gets the cheese.",
+                "I'm reading a horror story in Braille. Something bad is about to happen, I can feel it.",
+                "I used to be indecisive, but now I'm not so sure.",
+                "My favorite exercise is a cross between a lunge and a crunch. I call it lunch.",
+                "I told my wife she should embrace her mistakes. She gave me a hug.",
+                "Why don't scientists trust stairs? Because they're always up to something.",
+                "I'm on a seafood diet. I see food and I eat it.",
+                "My boss told me to have a good day, so I went home.",
+                "I wondered why the baseball kept getting bigger. Then it hit me.",
+                "I used to hate facial hair, but then it grew on me.",
+                "Why do chicken coops only have two doors? Because if they had four, they'd be chicken sedans!",
+                "I'm not arguing, I'm just explaining why I'm right.",
+                "My wife asked me to put ketchup on the shopping list. Now I can't read anything.",
+                "I bought the world's worst thesaurus yesterday. Not only is it terrible, it's terrible.",
+                "Why don't scientists trust atoms? Because they make up everything and they're always splitting!",
+                "I tried to catch some fog earlier. I mist.",
+                "What do you call a fake noodle? An impasta!",
+                "I'm reading a book about anti-gravity. It's impossible to put down!",
+                "Why did the scarecrow win an award? He was outstanding in his field!",
+                "I told my computer I needed a break and now it won't stop sending me vacation ads.",
+                "My pet snake is great at math. It's an adder.",
+                "I'm addicted to brake fluid, but I can stop anytime.",
+                "Why don't skeletons fight each other? They don't have the guts.",
+                "I tried to make a joke about unemployment, but none of them work.",
+                "My friend's bakery burned down. Now his business is toast.",
+                "I used to be a banker, but I lost interest.",
+                "Why do bees have sticky hair? Because they use honeycombs!",
+                "I'm terrified of elevators, so I'm going to start taking steps to avoid them.",
+                "My dog is a magician. He's a labracadabrador.",
+                "I bought a new boomerang but couldn't figure out how to throw the old one away.",
+                "Why don't some couples go to the gym? Because some relationships don't work out!",
+                "I tried to organize a hide and seek competition, but it was a complete failure. Good players are hard to find.",
+                "My math teacher called me average. How mean!",
+                "I lost my job at the bank. A woman asked me to check her balance, so I pushed her over.",
+                "Why don't oysters donate? Because they're shellfish!",
+                "I tried to write a joke about pizza, but it was too cheesy.",
+                "My wife told me I should do lunges to stay in shape. That would be a big step forward.",
+                "Why did the coffee file a police report? It got mugged!",
+                "I'm so good at sleeping, I can do it with my eyes closed.",
+                "What do you call a sleeping bull? A bulldozer!",
+                "I tried to make a car out of spaghetti. You should have seen me drive pasta!",
+                "My friend thinks he's smart. He told me an onion is the only food that makes you cry, so I threw a coconut at his face.",
+                "Why don't scientists trust the ocean? Because it's always fishing for compliments!",
+                "I bought a dog from a blacksmith. As soon as I got home, he made a bolt for the door.",
+                "My wife asked me what I was doing on the computer. I said 'looking for cheap flights.' She got excited until I showed her the screen saver of birds.",
+                "Why did the bicycle fall over? It was two-tired!",
+                "I tried to make a joke about construction, but I'm still working on it.",
+                "My friend said he knew a man with a wooden leg named Smith. I asked him, 'What was the name of his other leg?'",
+                "Why don't eggs tell each other jokes? They'd crack up!",
+                "I'm addicted to soap, but I'm clean now.",
+                "What do you call a bear with no teeth? A gummy bear!",
+                "I tried to catch some fog today. I mist.",
+                "Why did the golfer bring two pairs of pants? In case he got a hole in one!",
+                "My wife said I never listen to her. At least I think that's what she said.",
+                "What do you call a fish wearing a bowtie? Sofishticated!",
+                "I told my wife she was drawing her eyebrows too high. She looked surprised.",
+                "Why don't scientists trust the stairs? They're always up to something!",
+                "I bought a ceiling fan. Complete waste of money. He just stands there applauding and saying 'Ooh, I love how smooth it is.'",
+                "My friend's dog can do magic tricks. It's a labracadabrador.",
+                "Why did the cookie go to the doctor? Because it felt crumbly!",
+                "I tried to make a belt made of watches, but it was a waist of time.",
+                "What do you call a dinosaur that crashes his car? Tyrannosaurus Wrecks!",
+                "My wife asked me to stop singing 'Wonderwall.' I said maybe.",
+                "Why don't some fish play piano? Because you can't tuna fish!",
+                "I bought a new vacuum cleaner. It sucks, but in a good way.",
+                "What do you call a cow with no legs? Ground beef!",
+                "I tried to organize a professional hide and seek league, but it never got off the ground. Apparently, good players are hard to find.",
+                "Why did the math book look so sad? Because it was full of problems!",
+                "My friend thinks he's a comedian. His jokes are so bad, they should be illegal. I guess you could say they're criminal.",
+                "What do you call a sleeping cow? A bulldozer!",
+                "I told my wife I lost 10 pounds. She asked where I lost it. I told her I don't know, that's why it's called 'lost.'",
+                "Why don't scientists trust atoms? Because they make up everything and split at the first sign of trouble!",
+                "My therapist says I should write letters to people I hate and then burn them. So far I've burned my therapist.",
+                "What do you call a fake stone in Ireland? A sham rock!",
+                "I tried to make a joke about paper, but it was tearable.",
+                "Why did the banana go to the doctor? It wasn't peeling well!",
+                "My wife asked me if I could clear the table. I needed a running start, but I made it.",
+                "What do you call a group of disorganized cats? A cat-astrophe!",
+                "I bought a new pair of gloves today, but they're both lefts. On the one hand, it's great, but on the other hand, it's just not right.",
+                "Why don't scientists trust the alphabet? Because it's always trying to spell trouble!",
+                "My friend said he doesn't understand cloning. I told him that makes two of us.",
+                "What do you call a pile of cats? A meowtain!",
+                "I tried to make a joke about wind, but it blows.",
+                "Why did the computer keep cold? It left its Windows open!",
+                "My wife told me to take out the trash. I said okay, where are we going?",
+                "What do you call a bear in the rain? A drizzly bear!",
+                "I bought a new clock, but I can't figure out how it works. I guess I don't have the time.",
+                "Why don't scientists trust rivers? Because they're always running!",
+                "My friend asked me to help him round up his 37 sheep. I said '40.'",
+                "What do you call a sleeping dragon? A nap-dragon!",
+                "I tried to make a joke about elevators, but it's an uplifting experience.",
+                "Why did the tomato turn red? Because it saw the salad dressing!",
+                "My wife asked me what's on the TV. I said dust.",
+                "What do you call a cow that plays guitar? A moo-sician!",
+                "I bought a new car that runs on herbs. It's a Thyme machine.",
+                "Why don't scientists trust calendars? Because their days are numbered!",
+                "My friend thinks he's invisible. I can't see why."
+            ],
+            
+            outrageous: [
+                "You're so unique that if uniqueness was a crime, you'd be serving a life sentence.",
+                "Your existence is so impactful that historians will need a separate timeline just for you.",
+                "You're not just one in a million - you're one in 8 billion, and that's still underselling it.",
+                "If confidence was currency, you'd crash the global economy.",
+                "You're so authentic that fake people spontaneously combust in your presence.",
+                "Your potential is so vast it makes the universe feel claustrophobic.",
+                "You're not just breaking barriers - you're obliterating them into cosmic dust.",
+                "If being amazing was an Olympic sport, you'd be banned for being too competitive.",
+                "You're so authentically yourself that reality had to be adjusted to accommodate your existence.",
+                "Your level of awesome is so high it should require a permit from the Department of Incredible Humans.",
+                "You're not just breaking glass ceilings - you're turning them into glitter and making art.",
+                "Your presence is so powerful that Wi-Fi signals get stronger when you enter a room.",
+                "You're so unique that when you were born, the mold didn't just break - it exploded into confetti.",
+                "Your potential is so vast that scientists are considering renaming infinity after you.",
+                "You're not just one in a million - you're the reason they had to invent new numbers.",
+                "Your awesomeness is so intense that legendary status became an understatement.",
+                "You're so extraordinary that ordinary is filing a restraining order against mediocrity on your behalf.",
+                "Your existence is proof that the universe has a sense of humor and excellent taste.",
+                "You're not just raising the bar - you're launching it into orbit around a different planet.",
+                "Your level of fantastic is so high that fairy tales are taking notes.",
+                "You're so brilliantly unique that unicorns are studying you to learn how to be more magical.",
+                "Your awesomeness is so contagious that scientists are developing a vaccine - just kidding, they want everyone to catch it.",
+                "You're not just a force of nature - you're the reason nature needs to step up its game.",
+                "Your comfort zone is just a beautiful coffin for your dreams.",
+                "Normal people are just broken people who haven't figured it out yet.",
+                "Success is the best revenge, but revenge is more fun.",
+                "I'd rather be hated for who I am than loved for who I pretend to be.",
+                "Your opinion of me is none of my business.",
+                "I don't have time to hate people who hate me because I'm too busy loving people who love me.",
+                "Life's too short to pretend you're not fabulous.",
+                "I'm not arguing, I'm just explaining why I'm right.",
+                "Some people are like clouds - when they disappear, it's a beautiful day.",
+                "I don't need your approval to be amazing.",
+                "Being weird is a side effect of being awesome.",
+                "I'm not crazy, my reality is just different from yours.",
+                "Your biggest problem is you think you have time.",
+                "I'd agree with you, but then we'd both be wrong.",
+                "Life is too important to be taken seriously.",
+                "I'm not antisocial, I'm selectively social.",
+                "Your vibe attracts your tribe, and your tribe looks questionable.",
+                "I don't have an attitude problem, you have a perception problem.",
+                "Normal is an illusion. What's normal for the spider is chaos for the fly.",
+                "I'm not stubborn, I'm just committed to my wrongness.",
+                "Your limitation is only your imagination... and your bank account.",
+                "I don't need therapy, I need a vacation and some better friends.",
+                "Life is like a camera - focus on what's important and capture the good times.",
+                "I'm not weird, I'm limited edition.",
+                "Your life is your message to the world. Make sure it's inspiring... or at least entertaining.",
+                "I don't have trust issues, I have trustworthy people issues.",
+                "Being normal is boring. Being extraordinary is exhausting. I choose chaos.",
+                "I'm not lost, I'm exploring alternative routes to success.",
+                "Your potential is endless, but so is your capacity for self-sabotage.",
+                "I don't make mistakes, I create learning opportunities.",
+                "Life is too short to wear boring clothes and date boring people.",
+                "I'm not procrastinating, I'm prioritizing my mental health.",
+                "Your problems are temporary, but your screenshots are forever.",
+                "I don't need a hairstylist, my pillow gives me a new look every morning.",
+                "Being an adult is just saying 'But after this week things will slow down' until you die.",
+                "I'm not lazy, I'm energy efficient.",
+                "Your Monday motivation is someone else's Wednesday mediocrity.",
+                "I don't have a short attention span, I just... oh look, a butterfly!",
+                "Life is like a box of chocolates - mostly disappointing and overpriced.",
+                "I'm not dramatic, life is just more interesting when I'm involved.",
+                "Your backup plan shouldn't be your first choice, but here we are.",
+                "I don't need anger management, I need people to stop making me angry.",
+                "Being yourself is the best revenge against those who want you to be someone else.",
+                "I'm not high maintenance, I'm high value.",
+                "Your excuses are more creative than your solutions.",
+                "I don't have a drinking problem, I have a reality problem.",
+                "Life is 10% what happens to you and 90% how you react to it... I choose violence.",
+                "I'm not antisocial, I'm pro-solitude.",
+                "Your biggest flex is pretending your life is together on social media.",
+                "I don't need your validation, but I'll take your WiFi password.",
+                "Being perfect is overrated, being authentic is undervalued.",
+                "I'm not ignoring you, I'm just prioritizing my peace.",
+                "Your timeline is not my timeline, and my timeline is flexible.",
+                "I don't have commitment issues, I have bad choice recognition skills.",
+                "Life is too short to pretend kale tastes good.",
+                "I'm not avoiding responsibility, I'm delegating to future me.",
+                "Your expectations are premeditated resentments.",
+                "I don't need a therapist, I need a time machine and better decisions.",
+                "Being an overthinker is just being an under-action-taker.",
+                "I'm not pessimistic, I'm realistically optimistic about worst-case scenarios.",
+                "Your comfort zone is called a comfort zone for a reason - it's comfortable and boring.",
+                "I don't have trust issues, I have pattern recognition skills.",
+                "Life is like a sitcom, but I'm the only one who gets the jokes.",
+                "I'm not complicated, I'm just not basic.",
+                "Your mental health is more important than their comfort.",
+                "I don't need closure, I need amnesia.",
+                "Being busy is a choice, being productive is a skill.",
+                "I'm not overthinking, I'm thoroughly thinking.",
+                "Your life isn't a movie, stop waiting for someone else to direct it.",
+                "I don't have abandonment issues, I have attachment appreciation disorders.",
+                "Life is too short to fold fitted sheets properly.",
+                "I'm not avoiding confrontation, I'm choosing my battles wisely.",
+                "Your problems would disappear if you stopped talking about them... to everyone.",
+                "I don't need motivation, I need caffeine and fewer interruptions.",
+                "Being humble is overrated when you're actually amazing.",
+                "I'm not procrastinating, I'm incubating ideas.",
+                "Your emergency lack of planning is not my crisis to fix.",
+                "I don't have FOMO, I have JOMO - Joy of Missing Out.",
+                "Life is like dating apps - lots of options, most are disappointing.",
+                "I'm not difficult, I'm discerning.",
+                "Your opinion is like a belly button - everyone has one, most are useless.",
+                "I don't need your energy, I need you to take yours somewhere else.",
+                "Being positive all the time is toxic positivity with better marketing.",
+                "I'm not antisocial, I'm selectively social with excellent taste.",
+                "Your trauma is not your excuse for traumatizing others.",
+                "I don't have commitment issues, I have standard-raising tendencies.",
+                "Life is too short to pretend you like people you don't like.",
+                "I'm not overthinking, I'm under-acting on my thoughts.",
+                "Your boundaries are suggestions to people who don't respect them.",
+                "I don't need work-life balance, I need work-life integration with better pay.",
+                "Being authentic means some people won't like you, and that's their loss.",
+                "I'm not avoiding people, I'm investing in my mental health portfolio.",
+                "Your success threatens people who are comfortable with mediocrity.",
+                "I don't have trust issues, I have verification requirements.",
+                "Life is like a restaurant - you get what you pay for, and the service usually sucks.",
+                "I'm not high maintenance, I'm worth the maintenance.",
+                "Your potential is wasted on your excuses.",
+                "I don't need your approval, but I'll accept your admiration.",
+                "Being yourself is the ultimate act of rebellion in a world of copies.",
+                "I'm not difficult, I'm worth the effort.",
+                "Your comfort zone is where dreams go to die slowly.",
+                "I don't have attitude, I have standards that make people uncomfortable.",
+                "Life is too short to pretend you're not the main character in your story.",
+                "I'm not ignoring red flags, I'm collecting them for my museum of bad decisions.",
+                "Your energy is contagious - make sure it's worth catching.",
+                "I don't need fixing, I need appreciating.",
+                "Being weird is just being honest about who you are.",
+                "I'm not overthinking, I'm planning for every possible disaster scenario.",
+                "Your limitation is thinking you need permission to be extraordinary."
+            ],
+            
+            smart: [
+                "The only true wisdom is in knowing you know nothing - and you're wise enough to keep learning.",
+                "Intelligence is not measured by what you know, but by your capacity to adapt and grow.",
+                "Every expert was once a beginner who never stopped asking questions.",
+                "The most intelligent response to uncertainty is curiosity, not fear.",
+                "Knowledge is knowing that a tomato is a fruit; wisdom is not putting it in a fruit salad.",
+                "The human brain contains approximately 86 billion neurons - and yours is making new connections right now.",
+                "Intelligence is like a muscle - the more you challenge it, the stronger it becomes.",
+                "The greatest discoveries often come from the simplest questions asked in new ways.",
+                "The only true wisdom is in knowing you know nothing.",
+                "Intelligence is the ability to adapt to change.",
+                "Knowledge speaks, but wisdom listens.",
+                "The mind that opens to a new idea never returns to its original size.",
+                "Education is what remains after one has forgotten what one has learned in school.",
+                "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+                "Think like a proton: stay positive.",
+                "Logic will get you from A to B. Imagination will take you everywhere.",
+                "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+                "Reality is merely an illusion, albeit a very persistent one.",
+                "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+                "In the middle of difficulty lies opportunity.",
+                "The difference between genius and stupidity is that genius has its limits.",
+                "Information is not knowledge. Knowledge is not wisdom. Wisdom is not truth.",
+                "The art of being wise is knowing what to overlook.",
+                "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+                "The unexamined life is not worth living.",
+                "He who knows that enough is enough will always have enough.",
+                "The journey of a thousand miles begins with one step.",
+                "When you change the way you look at things, the things you look at change.",
+                "Compound interest is the eighth wonder of the world. He who understands it, earns it.",
+                "The best time to plant a tree was 20 years ago. The second best time is now.",
+                "You cannot teach a man anything; you can only help him find it within himself.",
+                "The fool doth think he is wise, but the wise man knows himself to be a fool.",
+                "It is not the strongest of the species that survives, but the one most responsive to change.",
+                "The whole is greater than the sum of its parts.",
+                "Simplicity is the ultimate sophistication.",
+                "What we know is a drop, what we don't know is an ocean.",
+                "The only way to do great work is to love what you do.",
+                "Innovation distinguishes between a leader and a follower.",
+                "The biggest risk is not taking any risk at all.",
+                "Your time is limited, don't waste it living someone else's life.",
+                "The cave you fear to enter holds the treasure you seek.",
+                "Everything should be made as simple as possible, but not simpler.",
+                "The measure of intelligence is the ability to change.",
+                "If you want to understand today, you have to search yesterday.",
+                "The future belongs to those who prepare for it today.",
+                "You miss 100% of the shots you don't take.",
+                "The only impossible journey is the one you never begin.",
+                "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+                "The best investment you can make is in your own abilities.",
+                "Learning never exhausts the mind.",
+                "An investment in knowledge pays the best interest.",
+                "The capacity to learn is a gift; the ability to learn is a skill; the willingness to learn is a choice.",
+                "Yesterday is history, tomorrow is a mystery, today is a gift. That's why it's called the present.",
+                "The expert in anything was once a beginner.",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+                "It does not matter how slowly you go as long as you do not stop.",
+                "A person who never made a mistake never tried anything new.",
+                "The way to get started is to quit talking and begin doing.",
+                "Don't watch the clock; do what it does. Keep going.",
+                "The future depends on what you do today.",
+                "It is during our darkest moments that we must focus to see the light.",
+                "Life is 10% what happens to you and 90% how you react to it.",
+                "The only person you are destined to become is the person you decide to be.",
+                "What we think, we become.",
+                "The mind is everything. What you think you become.",
+                "Whether you think you can or you think you can't, you're right.",
+                "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+                "You have power over your mind - not outside events. Realize this, and you will find strength.",
+                "No one can hurt you without your permission.",
+                "The present moment is the only time over which we have dominion.",
+                "If you correct your mind, the rest of your life will fall into place.",
+                "The root of suffering is resisting the certainty that no matter what the circumstances, uncertainty is all we truly have.",
+                "Pain is inevitable. Suffering is optional.",
+                "The obstacle is the path.",
+                "Every moment is a fresh beginning.",
+                "What we plant in the soil of contemplation, we shall reap in the harvest of action.",
+                "The best way to predict the future is to create it.",
+                "You are never too old to set another goal or to dream a new dream.",
+                "The only true voyage of discovery is not to go to new places, but to have other eyes.",
+                "We cannot solve our problems with the same thinking we used when we created them.",
+                "The definition of insanity is doing the same thing over and over again and expecting different results.",
+                "Great minds discuss ideas; average minds discuss events; small minds discuss people.",
+                "The price of anything is the amount of life you exchange for it.",
+                "Time is the most valuable thing we have, because it is the most irrevocable.",
+                "The question isn't who is going to let me; it's who is going to stop me.",
+                "Don't be afraid to give up the good to go for the great.",
+                "The way I see it, if you want the rainbow, you gotta put up with the rain.",
+                "Success is walking from failure to failure with no loss of enthusiasm.",
+                "It is not the mountain we conquer, but ourselves.",
+                "The only limit to our realization of tomorrow will be our doubts of today.",
+                "You can't use up creativity. The more you use, the more you have.",
+                "Creativity is intelligence having fun.",
+                "The significant problems we face cannot be solved at the same level of thinking we were at when we created them.",
+                "Imagination is more important than knowledge. Knowledge is limited, imagination embraces the entire world.",
+                "The true sign of intelligence is not knowledge but imagination.",
+                "Anyone who has never made a mistake has never tried anything new.",
+                "Try not to become a person of success, but rather try to become a person of value.",
+                "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+                "The important thing is to not stop questioning.",
+                "Learn from yesterday, live for today, hope for tomorrow.",
+                "I have no special talent. I am only passionately curious.",
+                "The value of a man should be seen in what he gives and not in what he is able to receive.",
+                "Strive not to be a success, but rather to be of value.",
+                "Weakness of attitude becomes weakness of character.",
+                "The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.",
+                "Once you stop learning, you start dying.",
+                "The more that you read, the more things you will know. The more that you learn, the more places you'll go.",
+                "A reader lives a thousand lives before he dies. The man who never reads lives only one.",
+                "There is no friend as loyal as a book.",
+                "Books are a uniquely portable magic.",
+                "Reading is to the mind what exercise is to the body.",
+                "The person who reads too much and uses his brain too little will fall into lazy habits of thinking.",
+                "Knowledge is power, but enthusiasm pulls the switch.",
+                "The beautiful thing about learning is that no one can take it away from you.",
+                "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.",
+                "The roots of education are bitter, but the fruit is sweet."
+            ],
+            
+            beautiful: [
+                "You are a symphony of stardust, temporarily organized into something magnificent.",
+                "Your existence is proof that the universe has an artistic side.",
+                "You carry within you the same elements that light up the stars.",
+                "Beauty isn't about perfection - it's about the courage to be authentically yourself.",
+                "You are both the artist and the masterpiece in the gallery of life.",
+                "Your uniqueness adds a color to the world that didn't exist before you.",
+                "In a world of copies, you remain an irreplaceable original.",
+                "You are living poetry in motion, writing verses with every breath.",
+                "You are enough, exactly as you are, in this moment.",
+                "The world is full of magic things, patiently waiting for our senses to grow sharper.",
+                "In every walk with nature, one receives far more than they seek.",
+                "You are not just a drop in the ocean, but the entire ocean in each drop.",
+                "Stars can't shine without darkness.",
+                "The most beautiful things in life are not seen but felt with the heart.",
+                "Every sunset brings the promise of a new dawn.",
+                "You carry the passport to your own happiness.",
+                "Like wildflowers, you must allow yourself to grow in all the places people thought you never would.",
+                "The universe is not only stranger than we imagine, it is stranger than we can imagine.",
+                "We are all made of star stuff, connected to the cosmos in the most fundamental way.",
+                "Your soul is attracted to people the same way flowers are attracted to the sun.",
+                "Love is the bridge between two hearts.",
+                "Every moment is a fresh beginning, a chance to bloom again.",
+                "You are a story worth telling, a song worth singing, a life worth living.",
+                "The earth has music for those who listen.",
+                "In the depth of winter, I finally learned that there was in me an invincible summer.",
+                "You are braver than you believe, stronger than you seem, and more loved than you know.",
+                "Beauty begins the moment you decide to be yourself.",
+                "The best and most beautiful things cannot be seen or touched, they must be felt with the heart.",
+                "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+                "Every child is an artist. The problem is staying an artist when you grow up.",
+                "The purpose of life is to live it, to taste experience to the utmost.",
+                "Life is not measured by the number of breaths we take, but by the moments that take our breath away.",
+                "Where flowers bloom, so does hope.",
+                "You are never too old to set another goal or to dream a new dream.",
+                "The world is but a canvas to our imagination.",
+                "Let your light shine so brightly that others can see their way out of the dark.",
+                "Every morning we are born again. What we do today is what matters most.",
+                "You were born to be real, not to be perfect.",
+                "The ocean stirs the heart, inspires the imagination, and brings eternal joy to the soul.",
+                "Look deep into nature, and then you will understand everything better.",
+                "A flower does not think of competing with the flower next to it. It just blooms.",
+                "The moon and stars are there to remind us that there is always light in the darkness.",
+                "Your heart is the size of an ocean. Go find yourself in its hidden depths.",
+                "Every great dream begins with a dreamer.",
+                "The way to love someone is to lightly run your finger over that person's soul until you find a crack, and then gently pour your love into that crack.",
+                "We are all broken, that's how the light gets in.",
+                "Sometimes the smallest step in the right direction ends up being the biggest step of your life.",
+                "You are a piece of the puzzle of someone else's life. You may never know where you fit, but others will fill the holes in their lives straight into your heart.",
+                "The most wasted of days is one without laughter.",
+                "Hope is the thing with feathers that perches in the soul.",
+                "Every ending is a new beginning wrapped in the wisdom of experience.",
+                "You have been assigned this mountain to show others it can be moved.",
+                "The sun loved the moon so much, he died every night to let her breathe.",
+                "Your existence is proof that this generation needed precisely your gifts, your mission, your love.",
+                "We are not going in circles, we are going upwards. The path is a spiral; we have already climbed many steps.",
+                "The wound is the place where the light enters you.",
+                "Every person you meet has something to teach you.",
+                "You are not a drop in the ocean. You are the entire ocean in a drop.",
+                "Life is like a camera. Focus on what's important, capture the good times.",
+                "The grass is greener where you water it.",
+                "Your wings already exist. All you have to do is fly.",
+                "In a world where you can be anything, be kind.",
+                "Every soul is a melody that needs to be played.",
+                "The best way to pay for a lovely moment is to enjoy it.",
+                "You are exactly where you need to be to become who you're meant to be.",
+                "Nothing can dim the light that shines from within.",
+                "The butterfly counts not months but moments, and has time enough.",
+                "You are the artist of your own life. Don't hand the paintbrush to anyone else.",
+                "Every day may not be good, but there's something good in every day.",
+                "The secret of change is to focus all of your energy not on fighting the old, but on building the new.",
+                "Your story is still being written. Every page is a new possibility.",
+                "We rise by lifting others.",
+                "The universe conspires to help the dreamer.",
+                "You are a living, breathing miracle wrapped in skin.",
+                "Every sunrise is an invitation to brighten someone's day.",
+                "Love is not something you find. Love is something that finds you.",
+                "The most beautiful people are those who have known defeat, known suffering, known struggle, known loss, and have found their way out of the depths.",
+                "Your present circumstances don't determine where you can go; they merely determine where you start.",
+                "The stars are the street lights of eternity.",
+                "You are not here merely to make a living. You are here to enable the world to live more amply.",
+                "Every act of kindness is a piece of love we leave behind.",
+                "The best things in life are the people we love, the places we've been, and the memories we've made.",
+                "You are somebody's reason to smile.",
+                "Life is a journey, not a destination. Focus on the journey.",
+                "The world needs your unique magic. Don't deprive it by trying to be someone else.",
+                "You are the sky. Everything else is just the weather.",
+                "Peace comes from within. Do not seek it without.",
+                "The future belongs to those who believe in the beauty of their dreams.",
+                "Every moment is a gift. That's why it's called the present.",
+                "You are more resilient than you realize, more beautiful than you can see, and more loved than you might currently believe.",
+                "The greatest revolution of our generation is the discovery that human beings can alter their lives by altering their attitudes.",
+                "Every saint has a past, and every sinner has a future.",
+                "You don't have to be perfect to be wonderful.",
+                "The deeper that sorrow carves into your being, the more joy you can contain.",
+                "What we plant in the soil of contemplation, we shall reap in the harvest of action.",
+                "You are never alone. You are eternally connected with everyone.",
+                "The privilege of a lifetime is being who you are.",
+                "Every child comes with the message that God is not yet discouraged of man.",
+                "You were born with wings, why prefer to crawl through life?",
+                "Life isn't about finding yourself. Life is about creating yourself.",
+                "The most beautiful moments in life are moments when you are expressing your joy, not when you are seeking it.",
+                "You are allowed to be both a masterpiece and a work in progress simultaneously.",
+                "The heart that gives, gathers.",
+                "Every human being is intended to have a character of his own; to be what no others are, and to do what no other can do.",
+                "You are not here by accident. You are here on purpose and for a purpose.",
+                "The most precious gift we can offer others is our presence.",
+                "Every flower must grow through dirt.",
+                "You have something special. You have GREATNESS within you.",
+                "The light in me honors the light in you.",
+                "Every ending is the beginning of something else.",
+                "You are enough. You have enough. You do enough.",
+                "The most important relationship in your life is the relationship you have with yourself.",
+                "Every wave in the ocean has a different dance.",
+                "You are the author of your own story. Make it a beautiful one.",
+                "The world is full of beautiful things, just like you.",
+                "Every soul has its own note to contribute to the grand symphony of existence.",
+                "You matter. Your voice matters. Your story matters. Your presence matters.",
+                "The most beautiful discovery true friends make is that they can grow separately without growing apart.",
+                "Every day is a new opportunity to be the person you want to be.",
+                "You are a walking, talking miracle, and don't you forget it.",
+                "The fragrance of flowers spreads only in the direction of the wind. But the goodness of a person spreads in all directions.",
+                "Every step you take is building the staircase to your dreams.",
+                "You are not what happened to you. You are what you choose to become.",
+                "The most beautiful thing you can wear is confidence.",
+                "Every kind word is a seed that blossoms in someone's heart.",
+                "You are a rare combination of someone who has a good heart and a twisted sense of humor.",
+                "The moon does not fight. It attacks no one. It does not worry. It does not try to crush others. It keeps to its course, but by its very nature, it gently influences.",
+                "Every breath is a second chance.",
+                "You were not born to be background decoration. You were born to be magic.",
+                "The most beautiful things happen when you distance yourself from negativity.",
+                "Every sunset proves that endings can be beautiful too.",
+                "You are enough, even when it doesn't feel like it.",
+                "The most beautiful curve on your body is your smile.",
+                "Every raindrop is perfect because it fulfills its own nature.",
+                "You are a diamond, dear. They can't break you.",
+                "The most beautiful people are those who bring out the beauty in others.",
+                "Every morning brings new potential, but only if you walk through the door.",
+                "You are not just surviving, you are growing, evolving, and becoming.",
+                "The most beautiful love is the kind that awakens the soul and makes us reach for more.",
+                "Every difficulty is an opportunity in disguise.",
+                "You are more than your mistakes, your past, your fears, and your doubts.",
+                "The most beautiful thing about dreams is that they don't have expiration dates.",
+                "Every person is a new door to a completely different world.",
+                "You are not broken. You are breaking through.",
+                "The most beautiful moments are the ones that can't be explained, they can only be experienced.",
+                "Every act of creation is first an act of destruction.",
+                "You are exactly where you need to be to take the next step forward.",
+                "The most beautiful thing you can be is yourself.",
+                "Every star was once darker than the night before it awakened.",
+                "You are not too much. You are not too little. You are exactly enough.",
+                "The most beautiful songs are born from the deepest pain and the highest joy.",
+                "Every scar tells a story of survival.",
+                "You are the light that helps others see in the dark.",
+                "The most beautiful gardens are cultivated with patience and love.",
+                "Every heartbeat is a reminder that you are alive and capable of amazing things.",
+                "You are a masterpiece painted by the hands of time and experience.",
+                "The most beautiful journeys begin with a single step into the unknown.",
+                "Every cloud has a silver lining waiting to shine.",
+                "You are not here to shrink so others feel comfortable. You are here to shine.",
+                "The most beautiful thing about humanity is our capacity to love unconditionally.",
+                "Every goodbye makes room for a hello.",
+                "You are the miracle someone prayed for.",
+                "The most beautiful views come after the hardest climbs.",
+                "Every soul has a song. Sing yours with courage and joy."
+            ],
+            
+            angry: [
+                "Anger is just passion looking for a constructive outlet - channel that fire!",
+                "Your frustration shows you care deeply about something - that's actually beautiful.",
+                "Sometimes anger is the only appropriate response to injustice.",
+                "Being angry doesn't make you a bad person - it makes you human.",
+                "Your anger is valid, but don't let it become your permanent address.",
+                "Channel that rage into changing what angers you about the world.",
+                "Fury can be fuel when pointed in the right direction.",
+                "Your anger means you haven't given up on things being better.",
+                "I'm not angry, I'm just passionate about how stupid you're being right now.",
+                "Some people need a high five. In the face. With a chair.",
+                "I don't have anger issues. I have idiot issues.",
+                "If stupidity was a crime, you'd be serving life without parole.",
+                "I'm not arguing with you. I'm explaining why you're wrong.",
+                "Your lack of planning does not constitute an emergency on my part.",
+                "I'm not rude, I just have the balls to say what everyone else is thinking.",
+                "Common sense is like deodorant. The people who need it most never use it.",
+                "I don't need anger management. You need to stop making me angry.",
+                "Some people are like Slinkies. Not really good for much, but bring a smile to your face when pushed down the stairs.",
+                "I'm not crazy. Everyone else is just wrong.",
+                "If I wanted to kill myself, I'd climb your ego and jump to your IQ.",
+                "I don't have time for your drama. I have my own to produce and direct.",
+                "You're not just wrong, you're stupid.",
+                "I'm not antisocial. I'm anti-idiot.",
+                "Your opinion is like a broken clock - occasionally right, but mostly just annoying.",
+                "I would agree with you, but then we'd both be wrong.",
+                "The fact that you're still breathing is a testament to modern medical science.",
+                "I'm not losing my mind. It's backing away from you slowly.",
+                "You have the right to remain silent. Please use it.",
+                "I'm not bitter. I'm just tired of dealing with your level of incompetence.",
+                "If ignorance is bliss, you must be the happiest person alive.",
+                "I don't suffer from insanity. I enjoy every minute of it.",
+                "You're the reason warning labels exist.",
+                "I'm not mean. I'm just brutally honest and you can't handle the truth.",
+                "Some people just need to be told. Today, you're that people.",
+                "I'm not angry. This is just my face when I'm dealing with morons.",
+                "You're not pretty enough to be this stupid.",
+                "I don't have an attitude problem. You have a perception problem.",
+                "If you think I'm bad now, you should see me when I'm actually trying.",
+                "I'm not arguing. I'm just explaining why I'm right and you're not.",
+                "Your stupidity is not my problem to fix.",
+                "I'm not rude. I'm honest. Most people can't handle honesty.",
+                "You're proof that evolution can go in reverse.",
+                "I don't need your approval. I need you to stop being wrong.",
+                "Some people are alive simply because it's illegal to kill them.",
+                "I'm not losing my temper. I'm just explaining loudly why you're an idiot.",
+                "You're not just a disappointment. You're a catastrophe.",
+                "I don't have trust issues. I have stupid people issues.",
+                "If brains were dynamite, you wouldn't have enough to blow your nose.",
+                "I'm not cruel. I'm just not pretending you're not stupid anymore.",
+                "You're like a broken pencil - completely pointless.",
+                "I don't need therapy. Other people need to stop being idiots.",
+                "You're not special. You're just loud and wrong.",
+                "I'm not angry at you. I'm angry at the oxygen you're wasting.",
+                "If stupidity burned calories, you'd be a supermodel.",
+                "I don't hate you. I just hope your next period is in a sentence.",
+                "You're not worth my time, but here we are anyway.",
+                "I'm not being difficult. You're being stupid.",
+                "You have the intellectual capacity of a soggy cracker.",
+                "I don't need anger management. I need people management.",
+                "You're like a software update. Nobody wants you, but you force yourself on everyone anyway.",
+                "I'm not frustrated with you. I'm frustrated with the fact that you exist.",
+                "You're not just wrong. You're aggressively wrong.",
+                "I don't have patience for your nonsense today. Or any day.",
+                "You're the human equivalent of a participation trophy.",
+                "I'm not being harsh. Reality is harsh. I'm just the messenger.",
+                "You're not playing dumb. You're not playing.",
+                "I don't need to explain myself to someone who couldn't understand anyway.",
+                "You're like a cloud - when you disappear, it's a beautiful day.",
+                "I'm not mad. I'm just disappointed in your life choices.",
+                "You're not worth the energy it takes to hate you.",
+                "I don't argue with idiots. They drag you down to their level and beat you with experience.",
+                "You're proof that natural selection doesn't always work.",
+                "I'm not being sarcastic. I'm being factual with attitude.",
+                "You're not just a clown. You're the entire circus.",
+                "I don't need your opinion. I need you to shut up.",
+                "You're like a broken GPS - completely lost and giving wrong directions.",
+                "I'm not angry. I'm just allergic to stupidity and you're making me break out.",
+                "You're not challenging me. You're annoying me.",
+                "I don't have time for games, especially ones you're too stupid to understand.",
+                "You're the reason God gave us middle fingers.",
+                "I'm not being mean. I'm being accurate.",
+                "You're not misunderstood. You're just wrong.",
+                "I don't need to be nice to people who don't deserve it.",
+                "You're like a Monday morning - nobody likes you.",
+                "I'm not losing control. I'm gaining clarity about how useless you are.",
+                "You're not worth arguing with, but I'm bored.",
+                "I don't suffer fools gladly, and you're making it very difficult.",
+                "You're like a flat tire - completely useless until you're changed.",
+                "I'm not being unreasonable. You're being impossible.",
+                "You're not just annoying. You're professionally annoying.",
+                "I don't need stress in my life, but you keep showing up anyway.",
+                "You're like a bad WiFi connection - weak, unreliable, and constantly disappointing.",
+                "I'm not being hostile. I'm being honest about your incompetence.",
+                "You're not adding value to this conversation. You're subtracting IQ points.",
+                "I don't need drama, but you're giving it away for free.",
+                "You're like a expired coupon - worthless and taking up space.",
+                "I'm not being confrontational. I'm being correct.",
+                "You're not thinking outside the box. You're not even in the same zip code as the box.",
+                "I don't need your excuses. I need results you're incapable of delivering.",
+                "You're like a broken calculator - you can't even do basic functions correctly.",
+                "I'm not being negative. I'm being realistic about your limitations.",
+                "You're not just failing. You're failing spectacularly.",
+                "I don't need your help making my life difficult. You're doing it automatically.",
+                "You're like a virus - unwanted, harmful, and difficult to get rid of.",
+                "I'm not being petty. I'm being precise about your shortcomings.",
+                "You're not contributing to the solution. You are the problem.",
+                "I don't need enemies with friends like you.",
+                "You're like a speed bump - slowing everyone down for no good reason.",
+                "I'm not being judgmental. I'm being observant of your poor choices.",
+                "You're not just incompetent. You're aggressively incompetent.",
+                "I don't need complications, but you specialize in creating them.",
+                "You're like a broken record - repetitive, annoying, and nobody wants to hear it.",
+                "I'm not being intolerant. I'm being selective about who deserves my patience.",
+                "You're not just disappointing your parents. You're disappointing evolution.",
+                "I don't need your problems added to my plate.",
+                "You're like a parking meter - expensive, demanding, and nobody's happy to see you.",
+                "I'm not being unrealistic. You're being unbelievable.",
+                "You're not just making mistakes. You're perfecting the art of failure.",
+                "I don't need your negativity contaminating my positive energy.",
+                "You're like a flat soda - all the fizz is gone and what's left is disappointing.",
+                "I'm not being impatient. You're being impossibly slow.",
+                "You're not just testing my patience. You've destroyed it completely.",
+                "I don't need your chaos disrupting my peace.",
+                "You're like a wrong number - annoying, unwanted, and happening at the worst time.",
+                "I'm not being overcritical. You're being under-adequate.",
+                "You're not just making my day worse. You're making existence questionable.",
+                "I don't need your energy vampiring sucking the life out of me.",
+                "You're like a broken promise - unreliable and ultimately disappointing.",
+                "I'm not being harsh. Reality is harsh and you can't handle it.",
+                "You're not just wasting my time. You're wasting oxygen.",
+                "I don't need your melodrama competing with my actual problems.",
+                "You're like a dead battery - completely useless when you're needed most.",
+                "I'm being direct because subtlety is lost on you.",
+                "You're not just annoying me. You're offending my intelligence.",
+                "I don't need your excuses. I need you to disappear.",
+                "You're like a typo in an important document - embarrassing and needing immediate correction.",
+                "I'm not being cruel. I'm being honest about your impact on others.",
+                "You're not just failing to meet expectations. You're actively lowering them.",
+                "I don't need your incompetence making my job harder.",
+                "You're like a Monday morning alarm clock - unwelcome, jarring, and ruining everything.",
+                "I'm not being unreasonable. You're being unbelievably dense.",
+                "You're not just testing limits. You're obliterating boundaries.",
+                "I don't need your presence making everything more complicated.",
+                "You're like a glitch in the matrix - an error that shouldn't exist.",
+                "I'm not being difficult. You're making everything difficult.",
+                "You're not just missing the point. You're in a different dimension from the point.",
+                "I don't need your help screwing things up. You're a natural.",
+                "You're like a mosquito at a picnic - small, persistent, and ruining everyone's good time.",
+                "I'm not losing my mind. You're driving me to find a new one.",
+                "You're not just wrong. You're confidently, aggressively, spectacularly wrong.",
+                "I don't need stress, but you're a premium supplier.",
+                "You're like a pop-up ad - annoying, unwanted, and impossible to ignore.",
+                "I'm not being hostile. I'm being honest about how much you suck.",
+                "You're not just disappointing. You're professionally disappointing.",
+                "I don't need your problems becoming my emergency.",
+                "You're like a broken elevator - taking everyone down with you.",
+                "I'm not angry. I'm just impressed by your commitment to being awful.",
+                "You're not just failing. You're setting new standards for failure.",
+                "I don't need your drama. I have Netflix for entertainment.",
+                "You're like a traffic jam - unnecessary, frustrating, and making everyone late.",
+                "I'm not being mean. I'm being accurate about your uselessness.",
+                "You're not just testing my patience. You've murdered it and buried it.",
+                "I don't need your chaos. I need you to find the exit.",
+                "You're like a computer virus - destructive, unwanted, and need to be eliminated immediately."
+            ],
+            
+            sarcastic: [
+                "Oh wonderful, another opportunity to exceed expectations while being dramatically underpaid in recognition.",
+                "Sure, let's add 'mind reader' to your job description since apparently that's now required.",
+                "Fantastic, because what this situation really needed was more complexity and confusion.",
+                "Oh great, another chance to smile and nod while pretending this makes perfect sense.",
+                "Marvelous, because your day clearly wasn't complete without this delightful surprise.",
+                "Absolutely brilliant - said no one ever about this particular decision.",
+                "How refreshing to encounter such stunning displays of common sense and logic.",
+                 "Oh, you're right. What was I thinking? Logic has no place here.",
+                "I'm not saying you're stupid, but you'd struggle to pour water out of a boot with instructions on the heel.",
+                "Wow, that's a brilliant idea. Did you think of it all by yourself?",
+                "I'd explain it to you, but I don't have the time or the crayons.",
+                "Oh sure, let me drop everything and work on your problem right away.",
+                "I'm not arguing, I'm just explaining why you're wrong.",
+                "That's a great plan. What could possibly go wrong?",
+                "I love deadlines. I like the whooshing sound they make as they fly by.",
+                "Oh, you have an opinion? How refreshing and completely unexpected.",
+                "I'd agree with you, but then we'd both be wrong.",
+                "I'm sorry, I can't hear you over the sound of how awesome I am not.",
+                "Of course you're right. You're always right. How silly of me to think otherwise.",
+                "Well, that went about as well as expected.",
+                "Oh great, another expert has arrived to tell us what we're doing wrong.",
+                "I'm not lazy, I'm just highly motivated to do nothing.",
+                "That's not a bad idea. Oh wait, yes it is.",
+                "I'd take you seriously, but that would be an insult to my intelligence.",
+                "Oh, you're offended? I'll make a note of that in my 'Things I Don't Care About' journal.",
+                "Congratulations on stating the obvious. Your parents must be so proud.",
+                "I'm not sarcastic. I'm just intelligent beyond your ability to understand.",
+                "Oh, you're busy? Let me rearrange my entire life around your schedule.",
+                "That's fascinating. Please, tell me more about how much I don't care.",
+                "I'd help you out, but I don't want to deprive you of the learning experience.",
+                "Oh, you have a better way? By all means, enlighten us with your wisdom.",
+                "I'm not being rude. I'm just being honest, and you can't handle it.",
+                "Well, aren't you just a ray of sunshine on a cloudy day.",
+                "Oh, you're stressed? Let me add that to the list of things that aren't my problem.",
+                "I'd explain the joke, but I don't want to ruin the surprise of you eventually getting it.",
+                "That's a great story. You should tell it at parties. You know, if you got invited to any.",
+                "Oh, you're tired? Welcome to adulthood. Population: everyone.",
+                "I'm not ignoring you. I'm just prioritizing my attention elsewhere.",
+                "Oh, you're right again. How do you do it? It's like you have a gift.",
+                "That sounds like a 'you' problem, not a 'me' problem.",
+                "I'd love to see the world from your perspective, but I can't get my head that far down.",
+                "Oh, you're in a hurry? How wonderful. I'll be sure to move extra slowly.",
+                "I'm not antisocial. I'm just not user-friendly.",
+                "Oh, you don't like my attitude? Feel free to find the exit. It's clearly marked.",
+                "That's a great question. Too bad you won't understand the answer.",
+                "I'd give you a piece of my mind, but I'm afraid you couldn't handle the upgrade.",
+                "Oh, you're disappointed? Join the club. We meet for drinks never.",
+                "I'm not being difficult. You're just experiencing the full force of my personality.",
+                "Oh, you have feedback? I'll file that right next to all the other opinions I didn't ask for.",
+                "That's an interesting theory. Wrong, but interesting.",
+                "I'd love to help, but I'm allergic to other people's problems.",
+                "Oh, you're confused? Don't worry, confusion looks good on you.",
+                "I'm not procrastinating. I'm strategically delaying for maximum impact.",
+                "Oh, you need this done yesterday? Great, let me just fire up my time machine.",
+                "That's a bold strategy. Let's see how that works out for you.",
+                "I'd be happy to explain, but I'm not fluent in whatever language you're speaking.",
+                "Oh, you're multitasking? So you're doing several things poorly instead of one thing well.",
+                "I'm not being negative. I'm being realistic about your chances of success.",
+                "Oh, you have a deadline? How thrilling. I'll get right on that.",
+                "That's a unique approach. I've never seen anyone fail quite like that before.",
+                "I'd offer advice, but you probably wouldn't take it anyway.",
+                "Oh, you're working hard? I can tell by how much you complain about it.",
+                "I'm not lazy. I'm energy efficient.",
+                "Oh, you're an expert? Please, share your vast wisdom with us mere mortals.",
+                "That's a great point. Too bad it's completely irrelevant.",
+                "I'd explain the problem, but I don't think you're ready for that level of truth.",
+                "Oh, you're making progress? At this rate, you'll be done by next century.",
+                "I'm not being picky. I just have standards that you apparently can't meet.",
+                "Oh, you're trying your best? Well, that explains everything.",
+                "That's an ambitious goal. Good luck with your delusions of competence.",
+                "I'd be impressed, but the bar was already pretty low.",
+                "Oh, you're learning? How adorable. Maybe someday you'll get it right.",
+                "I'm not being unreasonable. I'm just operating above your comprehension level.",
+                "Oh, you have experience? In what, exactly? Making mistakes?",
+                "That's a creative solution. Creative and completely wrong.",
+                "I'd help you understand, but I don't have all day. Or the patience.",
+                "Oh, you're concerned? That's touching. I'll lose sleep over it. Not really, but touching.",
+                "I'm not being condescending. I'm just speaking at your level.",
+                "Oh, you need clarification? I thought I was being perfectly clear, but apparently not.",
+                "That's an interesting perspective. From what planet did you develop it?",
+                "I'd take you seriously, but I don't want to encourage you.",
+                "Oh, you're overwhelmed? Maybe you should have thought of that before taking on more than you can handle.",
+                "I'm not being dramatic. This is just my natural response to stupidity.",
+                "Oh, you're following up? How persistent. And annoying.",
+                "That's a solid plan. If your goal is to fail spectacularly.",
+                "I'd explain why that won't work, but you seem so confident in your wrongness.",
+                "Oh, you're double-checking? Good idea. You might actually get it right this time.",
+                "I'm not being difficult. You're just not used to dealing with competence.",
+                "Oh, you need more time? Time won't fix what's fundamentally broken.",
+                "That's an optimistic timeline. Are you accounting for reality in those calculations?",
+                "I'd be patient, but I have other things to do. Important things.",
+                "Oh, you're brainstorming? I can hear the crickets chirping from here.",
+                "I'm not being critical. I'm being constructive about your limitations.",
+                "Oh, you have questions? I'm shocked. Truly shocked.",
+                "That's a thorough analysis. Too bad it's thoroughly wrong.",
+                "I'd give you credit, but I don't want to inflate your ego unnecessarily.",
+                "Oh, you're researching? Google must be getting a real workout today.",
+                "I'm not being impatient. I'm just not operating on geological time scales.",
+                "Oh, you're coordinating? Is that what we're calling chaos these days?",
+                "That's an interesting approach. I've never seen anyone make it more complicated before.",
+                "I'd explain the obvious, but I assumed you already knew. My mistake.",
+                "Oh, you're innovating? Is that what the kids are calling making things worse?",
+                "I'm not being pessimistic. I'm being realistic about your track record.",
+                "Oh, you're prioritizing? Finally, some recognition of what's actually important.",
+                "That's a comprehensive plan. Comprehensively flawed, but comprehensive.",
+                "I'd be enthusiastic, but enthusiasm doesn't fix fundamental problems.",
+                "Oh, you're adapting? Evolution in action. Slow, painful evolution.",
+                "I'm not being stubborn. I'm being consistently right.",
+                "Oh, you're streamlining? Is that code for 'making it someone else's problem'?",
+                "That's an efficient process. If your goal is maximum inefficiency.",
+                "I'd be supportive, but support requires something worth supporting.",
+                "Oh, you're troubleshooting? Have you tried turning yourself off and on again?",
+                "I'm not being unrealistic. You're being insufficiently ambitious in your mediocrity.",
+                "Oh, you're delegating? Finally figured out you can't do it yourself?",
+                "That's a scalable solution. It scales proportionally with the size of the disaster.",
+                "I'd offer encouragement, but false hope seems cruel.",
+                "Oh, you're syncing up? Like a symphony of confusion.",
+                "I'm not being perfectionist. I'm being minimally competent, which apparently looks like perfectionism to you.",
+                "Oh, you're touching base? How's the weather down there in the basement of expectations?",
+                "That's a sustainable approach. It sustains the problem indefinitely.",
+                "I'd be diplomatic, but honesty seems more efficient.",
+                "Oh, you're circling back? Like a dog chasing its tail, but less cute.",
+                "I'm not being elitist. I'm just acknowledging the obvious hierarchy of competence.",
+                "Oh, you're pivoting? Is that what we call giving up these days?",
+                "That's a robust framework. Robust like a house of cards in a hurricane.",
+                "I'd be collaborative, but collaboration requires multiple functioning brains.",
+                "Oh, you're optimizing? For what, maximum confusion?",
+                "I'm not being cynical. I'm being experienced in the art of managing expectations.",
+                "Oh, you're leveraging resources? Like leveraging a spoon to dig a tunnel.",
+                "That's a dynamic strategy. Dynamically unstable, but dynamic.",
+                "I'd be flexible, but I don't want to enable your poor planning.",
+                "Oh, you're being proactive? About time you caught up to where you should have been yesterday.",
+                "I'm not being judgmental. I'm being observant about obvious patterns.",
+                "Oh, you're thinking outside the box? You're not even in the same zip code as the box.",
+                "That's a user-friendly design. If the users are masochists.",
+                "I'd be patient, but patience has its limits, and you've exceeded them.",
+                "Oh, you're being strategic? Is that what we call random guessing now?",
+                "I'm not being demanding. I'm just asking for basic competence. Apparently, that's demanding.",
+                "Oh, you're taking initiative? Initiative to make everything more complicated.",
+                "That's a seamless integration. Like oil and water are seamlessly integrated.",
+                "I'd be understanding, but understanding requires something comprehensible to understand.",
+                "Oh, you're being thorough? Thoroughly confusing, yes.",
+                "I'm not being harsh. Reality is harsh. I'm just the messenger.",
+                "Oh, you're adding value? Is negative value still technically value?",
+                "That's a user-centric approach. Centered on confusing the user.",
+                "I'd be encouraging, but encouragement requires hope, and I'm fresh out.",
+                "Oh, you're being innovative? Innovation typically improves things, so maybe try something else.",
+                "I'm not being difficult. Difficult is what you call things that require actual effort.",
+                "Oh, you're exceeding expectations? Yes, you're exceeding my expectations of how badly this could go.",
+                "That's a cutting-edge solution. It cuts through logic like a butter knife through steel.",
+                "I'd be impressed, but my standards apparently exist in a different dimension.",
+                "Oh, you're being efficient? Efficiently creating more work for everyone else.",
+                "I'm not being sarcastic. This is just how I sound when I'm being honest about your performance.",
+                "Oh, you're meeting objectives? If the objective was to demonstrate what not to do, mission accomplished."
+            ],
+            
+            meaningless: [
+                "Purple elephants prefer jazz music on Tuesdays, but only during leap years.",
+                "The number 47 has been avoiding eye contact with the color blue since 1987.",
+                "My shoelaces are plotting a revolution against my socks.",
+                "If trees could text, they'd probably send way too many leaf emojis.",
+                "Rubber ducks are surprisingly philosophical about bathroom acoustics.",
+                "The alphabet is tired of being in order and wants to try freestyle organization.",
+                "Clouds are just sky sheep that forgot how to land.",
+                "Your coffee mug has strong opinions about the weather in Nebraska.",
+                  "The purple elephant dances backwards through tomorrow's forgotten memories.",
+                "Seven blue fish whisper secrets to the invisible rainbow.",
+                "My grandmother's shoelaces taste like Wednesday afternoon.",
+                "The clock strikes thirteen when the moon forgets to remember.",
+                "Circular squares bounce silently in the audible darkness.",
+                "Yesterday's tomorrow is today's maybe if the purple isn't green.",
+                "The silent scream of invisible colors echoes through empty fullness.",
+                "Frozen fire melts upward into the solid liquid of transparent opacity.",
+                "The backwards forward motion of stationary movement continues to pause.",
+                "Triangular circles dream of square spheres in the awake sleep of consciousness.",
+                "The soft hardness of liquid stones flows through the dry wetness.",
+                "Monday's Friday celebrates the birth of unborn possibilities.",
+                "The loud silence of quiet noise whispers through screaming thoughts.",
+                "Transparent walls hide the visible invisibility of obvious mysteries.",
+                "The heavy lightness of dark brightness illuminates the shadow of light.",
+                "Eternal moments last forever in the brief infinity of now.",
+                "The organized chaos of systematic randomness follows no pattern perfectly.",
+                "Smooth roughness touches the untouchable texture of feeling thoughts.",
+                "The present past remembers the future's forgotten memories clearly.",
+                "Living death breathes the unbreathed air of breathless breathing.",
+                "The warm coldness of hot ice freezes the burning coolness.",
+                "Straight curves bend through the linear circles of angular roundness.",
+                "The bitter sweetness of sour salt tastes like colorless rainbows.",
+                "Motionless acceleration races through the speed of stillness slowly.",
+                "The open closed door swings shut while remaining permanently ajar.",
+                "Finite infinity counts the uncountable numbers of numberless counting.",
+                "The solid liquid gas flows through the breathing stones of airless wind.",
+                "Harmonic discord plays the silent music of soundless melodies.",
+                "The ancient future remembers what hasn't happened yet again.",
+                "Weightless gravity pulls the falling upward motion down into up.",
+                "The empty fullness contains nothing that holds everything nowhere.",
+                "Sleeping wakefulness dreams the undreamed reality of surreal truth.",
+                "The flexible rigidity bends without breaking the unbreakable bending.",
+                "Soundless echoes repeat the unspoken words of speechless conversation.",
+                "The visible blindness sees the unseeable clarity of cloudy transparency.",
+                "Timeless time ticks the untickable seconds of secondless minutes.",
+                "The peaceful war fights for the violent tranquility of aggressive calm.",
+                "Motionless dance moves to the rhythm of rhythmless beats.",
+                "The truthful lies speak the unspoken honesty of dishonest truth.",
+                "Colorless brightness paints the unpaintable darkness with invisible light.",
+                "The rational madness thinks the unthinkable thoughts of thoughtless thinking.",
+                "Fragile strength breaks the unbreakable weakness of weak power.",
+                "The known unknown unknowingly knows the unknowable knowledge.",
+                "Silent loudness shouts the unshoutable quietness of quiet volume.",
+                "The ordered disorder arranges the unarranged arrangement of chaotic order.",
+                "Temporary permanence lasts the unlasting duration of durationless lasting.",
+                "The natural artificial creates the uncreated creation of creative destruction.",
+                "Conscious unconsciousness awakes the unawakened sleep of sleepless dreams.",
+                "The real unreality exists in the unexisting existence of existing nothing.",
+                "Purposeful purposelessness aims at the aimless target of targetless aiming.",
+                "The question answers itself while asking the unanswerable answer.",
+                "Definite uncertainty defines the undefined definition of definitionless meaning.",
+                "The beginning end starts to finish the unfinished beginning endlessly.",
+                "Simple complexity simplifies the complicated simplicity of complex simpleness.",
+                "The logical illogic follows the unfollowable logic of logicless reason.",
+                "Clear confusion clarifies the unclarified clarity of confused clearness.",
+                "The complete incompleteness completes the uncompleted completion completely.",
+                "Certain uncertainty certainly ensures the unensured certainty uncertainly.",
+                "The possible impossibility possibly makes the unmakeable possibility impossible.",
+                "Normal abnormality normalizes the unnormal normality of abnormal normalness.",
+                "The original copy copies the uncopiable original of copied originality.",
+                "Perfect imperfection perfects the unperfected perfection of imperfect perfection.",
+                "The active passivity actively passivates the unpassivated activity of passive action.",
+                "Meaningful meaninglessness means the unmeaningful meaning of meaningless significance.",
+                "The true false truth falsely truths the untruthful falsehood of false honesty.",
+                "Useful uselessness uses the unusable usefulness of useless utility.",
+                "The serious joke seriously jokes about the unjokeable seriousness of joking seriously.",
+                "Important unimportance importantly unimportantizes the unimportant importance importantly.",
+                "The necessary unnecessary necessarily necessitates the unnecessitated necessity necessarily.",
+                "Valuable valuelessness values the unvaluable value of valueless worth.",
+                "The helpful unhelpfulness helpfully unhelpfulizes the unhelpful helpfulness helpfully.",
+                "Beneficial harmfulness benefits from the unbeneficial benefit of harmful benefits.",
+                "The constructive destruction constructs the unconstructed construction of destructive building.",
+                "Productive unproductivity produces the unproduced production of unproductive productivity.",
+                "The creative uncreation creates the uncreated creativity of uncreative creation.",
+                "Positive negativity positively negatives the unnegative positivity of negative positiveness.",
+                "The successful failure succeeds at the unsuccessful success of failing successfully.",
+                "Intelligent stupidity intelligently stupidifies the unstupid intelligence of stupid smartness.",
+                "The wise foolishness wisely foolishizes the unfoolish wisdom of foolish intelligence.",
+                "Efficient inefficiency efficiently inefficientizes the unefficient efficiency efficiently.",
+                "The organized disorganization organizes the unorganized organization of disorganized order.",
+                "Systematic unsystematicity systematically unsystematizes the unsystematic system systematically.",
+                "The structured unstructure structures the unstructured structure of unstructural structuring.",
+                "Planned unplanning plans the unplanned planning of unplanned spontaneity.",
+                "The prepared unpreparedness prepares the unprepared preparation of preparationless readiness.",
+                "Coordinated uncoordination coordinates the uncoordinated coordination of coordinationless harmony.",
+                "The synchronized unsynchronization synchronizes the unsynchronized synchronicity of timeless timing.",
+                "Balanced imbalance balances the unbalanced balance of imbalanced equilibrium.",
+                "The stable instability stabilizes the unstabilized stability of unstable steadiness.",
+                "Consistent inconsistency consistently inconsistentizes the unconsistent consistency consistently.",
+                "The regular irregularity regularly irregularizes the unregular regularity regularly.",
+                "Steady unsteadiness steadily unsteadifies the unsteady steadiness steadily.",
+                "The constant inconstancy constantly inconstantizes the unconstant constancy constantly.",
+                "Reliable unreliability reliably unreliabilizes the unreliable reliability reliably.",
+                "The dependable undependability dependably undependabilizes the undependable dependability dependably.",
+                "Predictable unpredictability predictably unpredictabilizes the unpredictable predictability predictably.",
+                "The expected unexpected expectedly unexpectifies the unexpectable expectation expectedly.",
+                "Anticipated unanticipation anticipatedly unanticipatizes the unanticipated anticipation anticipatedly.",
+                "The familiar unfamiliarity familiarly unfamiliarizes the unfamiliar familiarity familiarly.",
+                "Known unknownness knowingly unknowns the unknowing knowledge of knowing ignorance.",
+                "The understood misunderstanding understandingly misunderstands the misunderstood understanding understandingly.",
+                "Recognized unrecognition recognizingly unrecognizes the unrecognized recognition recognizingly.",
+                "The identified unidentification identifyingly unidentifies the unidentified identification identifyingly.",
+                "Acknowledged unacknowledgment acknowledgingly unacknowledges the unacknowledged acknowledgment acknowledgingly.",
+                "The accepted unacceptance acceptingly unaccepts the unaccepted acceptance acceptingly.",
+                "Approved unapproval approvingly unapproves the unapproved approval approvingly.",
+                "The confirmed unconfirmation confirmingly unconfirms the unconfirmed confirmation confirmingly.",
+                "Verified unverification verifyingly unverifies the unverified verification verifyingly.",
+                "The validated unvalidation validateingly unvalidates the unvalidated validation validateingly.",
+                "Established unestablishment establishingly unestablishes the unestablished establishment establishingly.",
+                "The founded unfoundation foundingly unfounds the unfounded foundation foundingly.",
+                "Grounded ungrounding groundingly ungrounds the ungrounded grounding groundingly.",
+                "The based unbasing basingly unbases the unbased basing basingly.",
+                "Rooted unrooting rootingly unroots the unrooted rooting rootingly.",
+                "The anchored unanchoring anchoringly unanchors the unanchored anchoring anchoringly.",
+                "Fixed unfixing fixingly unfixes the unfixed fixing fixingly.",
+                "The secured unsecuring securingly unsecures the unsecured securing securingly.",
+                "Attached unattachment attachingly unattaches the unattached attachment attachingly.",
+                "The connected unconnection connectingly unconnects the unconnected connection connectingly.",
+                "Linked unlinking linkingly unlinks the unlinked linking linkingly.",
+                "The joined unjoining joiningly unjoins the unjoined joining joiningly.",
+                "United ununiting unitingly ununites the ununited uniting unitingly.",
+                "The combined uncombination combiningly uncombines the uncombined combination combiningly.",
+                "Merged unmerging mergingly unmerges the unmerged merging mergingly.",
+                "The blended unblending blendingly unblends the unblended blending blendingly.",
+                "Mixed unmixing mixingly unmixes the unmixed mixing mixingly.",
+                "The fused unfusing fusingly unfuses the unfused fusing fusingly.",
+                "Integrated unintegration integratingly unintegrates the unintegrated integration integratingly.",
+                "The incorporated unincorporation incorporatingly unincorporates the unincorporated incorporation incorporatingly.",
+                "Included uninclusion includingly unincludes the unincluded inclusion includingly.",
+                "The contained uncontainment containingly uncontains the uncontained containment containingly.",
+                "Encompassed unencompassing encompassingly unencompasses the unencompassed encompassing encompassingly.",
+                "The embraced unembracing embracingly unembraces the unembraced embracing embracingly.",
+                "Surrounded unsurrounding surroundingly unsurrounds the unsurrounded surrounding surroundingly.",
+                "The encircled unencircling encirclingly unencircles the unencircled encircling encirclingly.",
+                "Enclosed unenclosing enclosingly unencloses the unenclosed enclosing enclosingly.",
+                "The trapped untrapping trappingly untraps the untrapped trapping trappingly.",
+                "Captured uncapturing capturingly uncaptures the uncaptured capturing capturingly.",
+                "The caught uncatching catchingly uncatches the uncaught catching catchingly.",
+                "Seized unseizing seizingly unseizes the unseized seizing seizingly.",
+                "The grasped ungrasping graspingly ungrasps the ungrasped grasping graspingly.",
+                "Held unholding holdingly unholds the unheld holding holdingly.",
+                "The gripped ungripping grippingly ungrips the ungripped gripping grippingly.",
+                "Clutched unclutching clutchingly unclutches the unclutched clutching clutchingly.",
+                "The embraced unembracing embracingly unembraces the unembraced embracing embracingly.",
+                "Hugged unhugging huggingly unhugs the unhugged hugging huggingly.",
+                "The squeezed unsqueezing squeezingly unsqueezes the unsqueezed squeezing squeezingly.",
+                "Pressed unpressing pressingly unpresses the unpressed pressing pressingly.",
+                "The pushed unpushing pushingly unpushes the unpushed pushing pushingly.",
+                "Pulled unpulling pullingly unpulls the unpulled pulling pullingly.",
+                "The drawn undrawing drawingly undraws the undrawn drawing drawingly.",
+                "Dragged undragging draggingly undrags the undragged dragging draggingly.",
+                "The hauled unhauling haulingly unhauls the unhauled hauling haulingly.",
+                "Tugged untugging tuggingly untugs the untugged tugging tuggingly.",
+                "The yanked unyanking yankingly unyanks the unyanked yanking yankingly.",
+                "Jerked unjerking jerkingly unjerks the unjerked jerking jerkingly.",
+                "The snatched unsnatching snatchingly unsnatches the unsnatched snatching snatchingly.",
+                "Grabbed ungrabbing grabbingly ungrabs the ungrabbed grabbing grabbingly.",
+                "The plucked unplucking pluckingly unplucks the unplucked plucking pluckingly."
+            ],
+            
+            meaningful: [
+                "Your life is writing a story that only you can tell - make it worth reading.",
+                "Every person you meet is fighting a battle you know nothing about - be kind.",
+                "You are exactly where you need to be to become who you're meant to be.",
+                "The meaning of life isn't something you find - it's something you create.",
+                "Your struggles today are building the strength you'll need tomorrow.",
+                "You matter not because of what you do, but because of who you are.",
+                "Every act of kindness creates ripples that extend far beyond what you can see.",
+                "The purpose of life is to live it fully, feel it deeply, and love it completely.",
+                 "The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate, to have it make some difference that you have lived and lived well.",
+                "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+                "The only way to do great work is to love what you do.",
+                "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+                "Be yourself; everyone else is already taken.",
+                "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+                "Life is what happens to you while you're busy making other plans.",
+                "The unexamined life is not worth living.",
+                "It is during our darkest moments that we must focus to see the light.",
+                "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+                "Yesterday is history, tomorrow is a mystery, today is a gift of God, which is why we call it the present.",
+                "A person who never made a mistake never tried anything new.",
+                "The way to get started is to quit talking and begin doing.",
+                "Your time is limited, so don't waste it living someone else's life.",
+                "If life were predictable it would cease to be life, and be without flavor.",
+                "Spread love everywhere you go. Let no one ever come to you without leaving happier.",
+                "When you reach the end of your rope, tie a knot in it and hang on.",
+                "Don't judge each day by the harvest you reap but by the seeds that you plant.",
+                "Tell me and I forget. Teach me and I remember. Involve me and I learn.",
+                "It is better to be hated for what you are than to be loved for what you are not.",
+                "The only impossible journey is the one you never begin.",
+                "In this life we cannot do great things. We can only do small things with great love.",
+                "You must be the change you wish to see in the world.",
+                "The future belongs to those who believe in the beauty of their dreams.",
+                "It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+                "The only true wisdom is in knowing you know nothing.",
+                "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+                "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+                "A journey of a thousand miles begins with a single step.",
+                "Believe you can and you're halfway there.",
+                "The best time to plant a tree was 20 years ago. The second best time is now.",
+                "Life isn't about finding yourself. Life is about creating yourself.",
+                "The only person you are destined to become is the person you decide to be.",
+                "What we think, we become.",
+                "Whether you think you can or you think you can't, you're right.",
+                "The mind is everything. What you think you become.",
+                "Be kind, for everyone you meet is fighting a hard battle.",
+                "No one can make you feel inferior without your consent.",
+                "The greatest weapon against stress is our ability to choose one thought over another.",
+                "Happiness is not something ready made. It comes from your own actions.",
+                "The best way to find yourself is to lose yourself in the service of others.",
+                "Live as if you were to die tomorrow. Learn as if you were to live forever.",
+                "An eye for an eye only ends up making the whole world blind.",
+                "Be the change that you wish to see in the world.",
+                "The weak can never forgive. Forgiveness is the attribute of the strong.",
+                "You yourself, as much as anybody in the entire universe, deserve your love and affection.",
+                "Three things cannot be long hidden: the sun, the moon, and the truth.",
+                "The trouble is, you think you have time.",
+                "To be beautiful means to be yourself. You don't need to be accepted by others.",
+                "The privilege of a lifetime is being who you are.",
+                "What you do not want done to yourself, do not do to others.",
+                "Real knowledge is to know the extent of one's ignorance.",
+                "It does not matter how slowly you go as long as you do not stop.",
+                "Our greatest glory is not in never falling, but in rising every time we fall.",
+                "The man who moves a mountain begins by carrying away small stones.",
+                "Everything has beauty, but not everyone sees it.",
+                "The superior man is modest in his speech but exceeds in his actions.",
+                "If you want to go fast, go alone. If you want to go far, go together.",
+                "Turn your wounds into wisdom.",
+                "The biggest adventure you can take is to live the life of your dreams.",
+                "What we plant in the soil of contemplation, we shall reap in the harvest of action.",
+                "The cave you fear to enter holds the treasure you seek.",
+                "You are never too old to set another goal or to dream a new dream.",
+                "The only limit to our realization of tomorrow will be our doubts of today.",
+                "It always seems impossible until it's done.",
+                "Education is the most powerful weapon which you can use to change the world.",
+                "I have learned throughout my life as a composer chiefly through my mistakes and pursuits of false assumptions, not by my exposure to founts of wisdom and knowledge.",
+                "The most common way people give up their power is by thinking they don't have any.",
+                "If you don't like something, change it. If you can't change it, change your attitude.",
+                "Try to be a rainbow in someone's cloud.",
+                "Nothing will work unless you do.",
+                "Do something wonderful, people may imitate it.",
+                "We delight in the beauty of the butterfly, but rarely admit the changes it has gone through to achieve that beauty.",
+                "If you don't like the road you're walking, start paving another one.",
+                "Prejudice is a burden that confuses the past, threatens the future and renders the present inaccessible.",
+                "The time is always right to do what is right.",
+                "Intelligence plus character—that is the goal of true education.",
+                "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
+                "Injustice anywhere is a threat to justice everywhere.",
+                "Our lives begin to end the day we become silent about things that matter.",
+                "Faith is taking the first step even when you don't see the whole staircase.",
+                "Life's most persistent and urgent question is: 'What are you doing for others?'",
+                "The ultimate measure of a man is not where he stands in moments of comfort and convenience, but where he stands at times of challenge and controversy.",
+                "A genuine leader is not a searcher for consensus but a molder of consensus.",
+                "We must accept finite disappointment, but never lose infinite hope.",
+                "I have decided to stick with love. Hate is too great a burden to bear.",
+                "The time is always right to do what is right.",
+                "If you can't fly then run, if you can't run then walk, if you can't walk then crawl, but whatever you do you have to keep moving forward.",
+                "Everyone thinks of changing the world, but no one thinks of changing himself.",
+                "If you want to be happy, be.",
+                "The two most important days in your life are the day you are born and the day you find out why.",
+                "Courage is not the absence of fear, but mastery of it.",
+                "Kindness is a language which the deaf can hear and the blind can see.",
+                "The secret of getting ahead is getting started.",
+                "Don't go around saying the world owes you a living. The world owes you nothing. It was here first.",
+                "Good friends, good books, and a sleepy conscience: this is the ideal life.",
+                "If you tell the truth, you don't have to remember anything.",
+                "The human race has only one really effective weapon, and that is laughter.",
+                "Courage is resistance to fear, mastery of fear—not absence of fear.",
+                "The difference between ordinary and extraordinary is that little extra.",
+                "Your limitation—it's only your imagination.",
+                "Push yourself, because no one else is going to do it for you.",
+                "Great things never come from comfort zones.",
+                "Dream it. Wish it. Do it.",
+                "Success doesn't just find you. You have to go out and get it.",
+                "The harder you work for something, the greater you'll feel when you achieve it.",
+                "Dream bigger. Do bigger.",
+                "Don't stop when you're tired. Stop when you're done.",
+                "Wake up with determination. Go to bed with satisfaction.",
+                "Do something today that your future self will thank you for.",
+                "Little things make big days.",
+                "It's going to be hard, but hard does not mean impossible.",
+                "Don't wait for opportunity. Create it."
+            ],
+            
+            stupid: [
+                "I put my phone in airplane mode, but it didn't fly. What a scam.",
+                "I used to think the brain was the most important organ, then I realized who was telling me that.",
+                "Why do we park in driveways and drive on parkways? This keeps me up at night.",
+                "I bought a thesaurus yesterday but all the pages are blank. I have no words to describe how angry I am.",
+                "If you're not supposed to eat at night, why is there a light in the refrigerator?",
+                "I tried to catch some fog earlier. I mist.",
+                "Why do they call it rush hour when nobody's moving?",
+                "I wonder if fish get thirsty.",
+                "I haven't slept for ten days, because that would be too long.",
+                "I used to hate facial hair, but then it grew on me.",
+                "Why don't scientists trust atoms? Because they make up everything.",
+                "I told my wife she was drawing her eyebrows too high. She looked surprised.",
+                "My dog is a magician – he's a labracadabrador.",
+                "I'm reading a book about anti-gravity. It's about a guy who can't put it down.",
+                "Did you hear about the mathematician who's afraid of negative numbers? He'll stop at nothing to avoid them.",
+                "Why don't eggs tell jokes? They'd crack each other up.",
+                "I wondered why the baseball kept getting bigger. Then it hit me.",
+                "Want to hear a joke about construction? I'm still working on it.",
+                "Did you hear about the claustrophobic astronaut? He just needed some space.",
+                "Why don't skeletons fight each other? They don't have the guts.",
+                "What do you call a fake noodle? An impasta.",
+                "How does a penguin build its house? Igloos it together.",
+                "I only know 25 letters of the alphabet. I don't know y.",
+                "What do you call a bear with no teeth? A gummy bear.",
+                "Why did the scarecrow win an award? He was outstanding in his field.",
+                "How do you organize a space party? You planet.",
+                "Why did the coffee file a police report? It got mugged.",
+                "What's the best thing about Switzerland? I don't know, but the flag is a big plus.",
+                "Why did the bicycle fall over? Because it was two-tired.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't scientists trust stairs? Because they're always up to something.",
+                "What did the ocean say to the beach? Nothing, it just waved.",
+                "Why did the cookie go to the doctor? Because it felt crumbly.",
+                "What do you call a dinosaur that crashes his car? Tyrannosaurus Wrecks.",
+                "Why don't melons get married? Because they cantaloupe.",
+                "What do you call a fish wearing a crown? A king fish.",
+                "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
+                "What do you call a cow with no legs? Ground beef.",
+                "Why did the tomato turn red? Because it saw the salad dressing.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs tell jokes? They'd crack each other up.",
+                "What's orange and sounds like a parrot? A carrot.",
+                "Why did the banana go to the doctor? It wasn't peeling well.",
+                "What do you call a belt made of watches? A waist of time.",
+                "Why don't skeletons go to scary movies? They don't have the guts.",
+                "What do you call a cow with two legs? Lean beef.",
+                "Why did the math book look so sad? Because it had too many problems.",
+                "What do you call a pig that does karate? A pork chop.",
+                "Why don't scientists trust atoms? Because they make up everything.",
+                "What do you call a fish with no eyes? Fsh.",
+                "Why did the stadium get hot after the game? All of the fans left.",
+                "What do you call a fake noodle? An impasta.",
+                "Why don't pirates shower before they walk the plank? Because they'll just wash up on shore later.",
+                "What's the difference between a poorly dressed man on a bicycle and a well-dressed man on a tricycle? Attire.",
+                "Why don't eggs tell jokes? They'll crack each other up.",
+                "What did one wall say to the other wall? I'll meet you at the corner.",
+                "Why did the cookie go to therapy? Because it felt crumbly inside.",
+                "What do you call a dinosaur that loves to sleep? A dino-snore.",
+                "Why don't scientists trust stairs? They're always up to something.",
+                "What do you call a cow in an earthquake? A milkshake.",
+                "Why did the banana split? Because it saw the ice cream.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't melons get married? They cantaloupe.",
+                "What's the best time to go to the dentist? Tooth hurty (2:30).",
+                "Why did the scarecrow get promoted? He was outstanding in his field.",
+                "What do you call a bear in the rain? A drizzly bear.",
+                "Why don't skeletons fight? They don't have the guts.",
+                "What do you call a fish wearing a bowtie? Sofishticated.",
+                "Why did the coffee go to therapy? It was feeling depresso.",
+                "What do you call a cow that plays instruments? A moo-sician.",
+                "Why don't eggs play poker? They might crack under pressure.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why did the bicycle fall over? It was two-tired.",
+                "What do you call a pig that knows karate? A pork chop.",
+                "Why don't scientists trust the ocean? Because it's too salty.",
+                "What do you call a cow with a sense of humor? Laughing stock.",
+                "Why did the banana go to the doctor? It wasn't peeling well.",
+                "What do you call a fish that needs help singing? Auto-tuna.",
+                "Why don't skeletons go to parties? They have no body to go with.",
+                "What do you call a cow that's just given birth? De-calf-inated.",
+                "Why did the cookie cry? Because its mom was a wafer so long.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs tell jokes? They'd crack up.",
+                "What do you call a cow on a trampoline? A milk shake.",
+                "Why did the banana go to the gym? To get some a-peel.",
+                "What do you call a fish with no eyes? Fsh.",
+                "Why don't skeletons fight each other? They don't have the guts.",
+                "What do you call a cow that can play music? A moo-sician.",
+                "Why did the bicycle fall over? Because it was two-tired.",
+                "What do you call a pig doing karate? A pork chop.",
+                "Why don't scientists trust atoms? They make up everything.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why did the coffee file a police report? It got mugged.",
+                "What do you call a cow with no legs? Ground beef.",
+                "Why don't eggs go to comedy shows? They might crack up.",
+                "What do you call a fish wearing a crown? A king fish.",
+                "Why did the scarecrow win an award? He was outstanding in his field.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't melons get married? Because they cantaloupe.",
+                "What do you call a cow in a tornado? A milk shake.",
+                "Why did the banana split? Because it couldn't find a spoon.",
+                "What do you call a fish that needs help with vocals? Auto-tuna.",
+                "Why don't skeletons play music? They don't have organs.",
+                "What do you call a cow that's a comedian? Laughing stock.",
+                "Why did the cookie go to the doctor? It was feeling crumbly.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs tell jokes? They'd crack each other up.",
+                "What do you call a pig that does karate? A pork chop.",
+                "Why did the bicycle fall over? It was two-tired.",
+                "What do you call a cow with two legs? Lean beef.",
+                "Why don't scientists trust stairs? They're always up to something.",
+                "What do you call a fish with no eyes? Fsh.",
+                "Why did the banana go to therapy? It had too many splits.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs play poker? They might crack under pressure.",
+                "What do you call a cow that plays guitar? A moo-sician.",
+                "Why did the coffee go to the gym? To get stronger brew.",
+                "What do you call a fish wearing a bowtie? Sofishticated.",
+                "Why don't skeletons go to BBQs? They don't have the stomach for it.",
+                "What do you call a cow on a diet? Lean beef.",
+                "Why did the cookie break up with the milk? It was too clingy.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs tell secrets? They might crack.",
+                "What do you call a pig in a blanket? A sausage roll.",
+                "Why did the bicycle go to therapy? It had too many cycles.",
+                "What do you call a cow with a map? A cow-culator.",
+                "Why don't scientists trust the wind? It's full of hot air.",
+                "What do you call a fish that's good at basketball? A slam dunk-fish.",
+                "Why did the banana wear sunscreen? To prevent peeling.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs go skydiving? They might crack on impact.",
+                "What do you call a cow that's always cold? A chilly cow.",
+                "Why did the coffee bean go to school? To get grounded.",
+                "What do you call a fish that's also a doctor? A sturgeon.",
+                "Why don't skeletons use cell phones? They don't have the guts to call.",
+                "What do you call a cow that's good at math? A cow-culator.",
+                "Why did the cookie go to space? To see the Milky Way.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs like horror movies? They're too chicken.",
+                "What do you call a pig that's also a detective? Sherlock Hams.",
+                "Why did the bicycle join a band? It had good pedal tone.",
+                "What do you call a cow that's a spy? A moo-nificent agent.",
+                "Why don't scientists trust elevators? They're always up and down.",
+                "What do you call a fish that's good at singing? A tuna with perfect pitch.",
+                "Why did the banana join the circus? It was a-peel-ing.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs tell jokes at breakfast? They might scramble the punchline.",
+                "What do you call a cow that's good at archery? A bulls-eye.",
+                "Why did the coffee break up with sugar? It was too sweet to handle.",
+                "What do you call a fish that's also a lawyer? A legal eagle ray.",
+                "Why don't skeletons play tennis? They can't handle the racket.",
+                "What do you call a cow that's always complaining? A beef-er.",
+                "Why did the cookie go to the dentist? It had a cavity.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs like roller coasters? They might get scrambled.",
+                "What do you call a pig that's good at football? A ham-back.",
+                "Why did the bicycle go to the doctor? It had a flat tire-d feeling.",
+                "What do you call a cow that's good at dancing? A moo-ver and shaker.",
+                "Why don't scientists trust mirrors? They're always reflecting.",
+                "What do you call a fish that's good at magic? A magic carp.",
+                "Why did the banana go to art school? To learn how to draw a-peel.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs like camping? They're afraid of cracking up around the campfire.",
+                "What do you call a cow that's good at fixing things? A moo-chanic.",
+                "Why did the coffee go to college? To get a degree in brewing.",
+                "What do you call a fish that's good at photography? A snap-per.",
+                "Why don't skeletons go swimming? They don't have the guts to dive in.",
+                "What do you call a cow that's always tired? Exhausted beef.",
+                "Why did the cookie become a teacher? To help others rise to the occasion.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs like thunderstorms? They're afraid of cracking under pressure.",
+                "What do you call a pig that's good at karate? A pork chop specialist.",
+                "Why did the bicycle become a chef? It was good at whisking.",
+                "What do you call a cow that's good at poetry? A moo-et.",
+                "Why don't scientists trust clouds? They're always raining on their parade.",
+                "What do you call a fish that's good at construction? A hammer-head.",
+                "Why did the banana become a comedian? It had a-peel-ing humor.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs like winter? They might freeze and crack.",
+                "What do you call a cow that's good at gardening? A lawn moo-er.",
+                "Why did the coffee become a therapist? It was good at brewing solutions.",
+                "What do you call a fish that's good at accounting? A calculator fish.",
+                "Why don't skeletons like spicy food? They can't handle the heat without skin.",
+                "What do you call a cow that's always happy? Jolly rancher beef.",
+                "Why did the cookie become a pilot? It wanted to fly high.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs like action movies? Too much cracking going on.",
+                "What do you call a pig that's good at cleaning? A tidy ham.",
+                "Why did the bicycle become a musician? It had great pedal rhythm.",
+                "What do you call a cow that's good at telling time? A moo-nument.",
+                "Why don't scientists trust volcanoes? They're always blowing up.",
+                "What do you call a fish that's good at sports? An ath-fish-lete.",
+                "Why did the banana become a doctor? It wanted to help people heal and a-peel.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs like rock concerts? Too much cracking noise.",
+                "What do you call a cow that's good at painting? An art-ist cow.",
+                "Why did the coffee become a detective? It was good at brewing mysteries.",
+                "What do you call a fish that's good at teaching? A school fish.",
+                "Why don't skeletons like cold weather? They get chilled to the bone.",
+                "What do you call a cow that's always punctual? On-time beef.",
+                "Why did the cookie become a scientist? It wanted to discover new recipes.",
+                "What do you call a sleeping dinosaur? A dino-snore.",
+                "Why don't eggs like horror novels? Too many cracking plot twists.",
+                "What do you call a pig that's good at singing? A ham-mony specialist.",
+                "Why did the bicycle become a writer? It had a good sense of balance in stories.",
+                "What do you call a cow that's good at fashion? A moo-del.",
+                "Why don't scientists trust earthquakes? They're always shaking things up.",
+                "What do you call a fish that's good at comedy? A clown fish.",
+                "Why did the banana become a therapist? It was good at helping people split their problems.",
+                "What do you call a sleeping bull? A bulldozer.",
+                "Why don't eggs like mystery novels? They can't handle the suspense without cracking.",
+                "What do you call a cow that's good at electronics? A com-moo-ter specialist.",
+                "Why did the coffee become a life coach? It was great at perking people up.",
+                "What do you call a fish that's good at martial arts? A karate fish.",
+                "Why don't skeletons like hot weather? They don't have skin in the game.",
+                "What do you call a cow that's always organized? Filed beef.",
+                "Why did the cookie become a philosopher? It wanted to understand the meaning of batter.",
+                "What do you call a sleeping dinosaur? A dino-snore."
+            ]
+        };
+
+        let currentCategory = '';
+        let usedMessages = {};
+
+        function showCategory(category) {
+            document.getElementById('landingPage').style.display = 'none';
+            document.querySelectorAll('.message-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(category + 'Page').classList.add('active');
+            currentCategory = category;
+            
+            // Reset message
+            const messageEl = document.getElementById(category + 'Message');
+            messageEl.classList.remove('show');
+        }
+
+        function showLanding() {
+            document.querySelectorAll('.message-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById('landingPage').style.display = 'block';
+            currentCategory = '';
+        }
+
+        function showMessage(category) {
+            const messageElement = document.getElementById(category + 'Message');
+            
+            // Initialize used messages for this category if not exists
+            if (!usedMessages[category]) {
+                usedMessages[category] = [];
+            }
+            
+            // Reset if all messages have been used
+            if (usedMessages[category].length >= messages[category].length) {
+                usedMessages[category] = [];
+            }
+            
+            // Get available messages
+            const availableMessages = messages[category].filter((_, index) => 
+                !usedMessages[category].includes(index)
+            );
+            
+            // Pick random message
+            const randomIndex = Math.floor(Math.random() * availableMessages.length);
+            const selectedMessage = availableMessages[randomIndex];
+            
+            // Track used message
+            const originalIndex = messages[category].indexOf(selectedMessage);
+            usedMessages[category].push(originalIndex);
+            
+            // Hide current message
+            messageElement.classList.remove('show');
+            
+            setTimeout(() => {
+                messageElement.textContent = selectedMessage;
+                messageElement.classList.add('show');
+            }, 200);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && currentCategory) {
+                showLanding();
+            }
+            if (e.key === ' ' && currentCategory) {
+                e.preventDefault();
+                showMessage(currentCategory);
+            }
+        });
+    </script>
+</body>
+</html>
